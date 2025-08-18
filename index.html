@@ -54,40 +54,42 @@
 	</header>
 
 	<main class="layout">
-		<section class="left-panel">
-			<h2>Costs</h2>
+		<section class="top-section">
+			<section class="left-panel">
+				<h2>Costs</h2>
 
-			<div class="table-wrap">
-				<table id="costTable">
-					<thead>
-						<tr>
-							<th class="sticky-col">Model</th>
-							<th>Total Cost</th>
-							<th>Web Search</th>
-							<th>Cache</th>
-							<th>File Proc</th>
-							<th>BYOK Inference</th>
-							<th>Tokens Prompt</th>
-							<th>Tokens Completion</th>
-							<th>Tokens Reasoning</th>
-							<th>Requests</th>
-						</tr>
-					</thead>
-					<tbody>
-						<!-- Filled dynamically -->
-					</tbody>
-				</table>
-			</div>
+				<div class="table-wrap">
+					<table id="costTable">
+						<thead>
+							<tr>
+								<th>Model</th>
+								<th>Total Cost</th>
+								<th>Web Search</th>
+								<th>BYOK</th>
+								<th>Tokens Prompt</th>
+								<th>Tokens Completion</th>
+								<th>Tokens Reasoning</th>
+								<th>Requests</th>
+							</tr>
+						</thead>
+						<tbody>
+							<!-- Filled dynamically -->
+						</tbody>
+					</table>
+				</div>
+			</section>
+
+			<section class="right-panel">
+				<div class="kpis">
+					<div class="kpi"><div class="kpi-title">Total Cost</div><div class="kpi-value" id="kpiTotalCost">-</div></div>
+					<div class="kpi"><div class="kpi-title">Requests</div><div class="kpi-value" id="kpiRequests">-</div></div>
+					<div class="kpi"><div class="kpi-title">Avg Cost / Req</div><div class="kpi-value" id="kpiAvgCost">-</div></div>
+					<div class="kpi"><div class="kpi-title">Time Window</div><div class="kpi-value" id="kpiWindow">-</div></div>
+				</div>
+			</section>
 		</section>
 
-		<section class="right-panel">
-			<div class="kpis">
-				<div class="kpi"><div class="kpi-title">Total Cost</div><div class="kpi-value" id="kpiTotalCost">-</div></div>
-				<div class="kpi"><div class="kpi-title">Requests</div><div class="kpi-value" id="kpiRequests">-</div></div>
-				<div class="kpi"><div class="kpi-title">Avg Cost / Req</div><div class="kpi-value" id="kpiAvgCost">-</div></div>
-				<div class="kpi"><div class="kpi-title">Time Window</div><div class="kpi-value" id="kpiWindow">-</div></div>
-			</div>
-
+		<section class="below-panels">
 			<div class="card">
 				<h3>Cost by Model</h3>
 				<canvas id="barCostByModel"></canvas>
@@ -108,5 +110,7 @@
 			</div>
 		</section>
 	</main>
+</body>
+</html>
 </body>
 </html>

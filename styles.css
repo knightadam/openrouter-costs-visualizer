@@ -20,9 +20,9 @@ html, body {
 	background: var(--bg);
 	color: var(--text);
 	font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-	overflow: hidden; /* prevent subtle full-page scroll; inner panes still scroll */
-	display: flex;            /* NEW: let main fill the rest under the topbar */
-	flex-direction: column;   /* NEW */
+	overflow: auto; /* was: hidden — allow full-page scrolling */
+	display: flex;
+	flex-direction: column;
 }
 
 /* Top bar */
@@ -39,11 +39,11 @@ html, body {
 	border-bottom: 1px solid var(--border);
 	backdrop-filter: blur(6px);
 }
-.brand { font-weight: 700; letter-spacing: .2px; font-size: 20px; line-height: 1.1; }
+.brand { font-weight: 700; letter-spacing: .2px; font-size: 22px; line-height: 1.1; }
 .controls {
 	display: flex; flex-wrap: wrap; align-items: end; gap: 12px; position: relative;
 }
-.control { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--muted); }
+.control { display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: var(--muted); }
 .control input:not([type="checkbox"]):not([type="radio"]), .control select {
 	color: var(--text); background: var(--panel); border: 1px solid var(--border);
 	padding: 8px 10px; border-radius: 8px; min-width: 180px;
@@ -59,7 +59,7 @@ html, body {
 .btn:hover { filter: brightness(1.05); }
 /* model dropdown */
 .model-filter { position: relative; }
-.btn.mini { padding: 4px 8px; font-size: 12px; }
+.btn.mini { padding: 4px 8px; font-size: 13px; }
 .model-panel {
 	position: absolute; top: calc(100% + 6px); left: 0; z-index: 20;
 	background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
@@ -81,7 +81,7 @@ html, body {
 	display: block; /* simple list for tighter packing */
 }
 .model-item {
-	display: flex; align-items: center; gap: 8px; font-size: 12px;
+	display: flex; align-items: center; gap: 8px; font-size: 13px;
 	padding: 2px 4px; border-radius: 6px;
 }
 .model-item:hover { background: rgba(255,255,255,0.04); }
@@ -95,100 +95,162 @@ html, body {
 
 /* Layout */
 .layout {
-	/* height: calc(100vh - 64px); */ /* REMOVE brittle fixed height */
-	flex: 1;           /* NEW: fill remaining height under topbar */
-	min-height: 0;     /* NEW: allow children to shrink and scroll */
-	display: grid;
-	grid-template-columns: minmax(360px, 40%) 1fr;
+	flex: 1;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
 	gap: 12px;
 	padding: 12px;
 }
+
+/* Top section with table and KPIs side by side */
+.top-section {
+	display: grid;
+	grid-template-columns: 1fr 300px;
+	gap: 12px;
+	min-height: 400px; /* ensure adequate space for table */
+}
+
 .left-panel, .right-panel {
 	background: var(--panel);
 	border: 1px solid var(--border);
 	border-radius: var(--radius);
 	min-height: 0;
 }
-.left-panel { display: flex; flex-direction: column; }
-.left-panel h2, .right-panel h3 { margin: 6px 12px 4px 12px; font-size: 16px; }
+.left-panel { 
+	display: flex; 
+	flex-direction: column;
+	min-height: 400px;
+}
+.left-panel h2, .right-panel h3 { margin: 6px 12px 4px 12px; font-size: 18px; }
 .table-wrap {
 	flex: 1;
-	overflow: auto; /* keep both axes */
-	/* ensure horizontal scrollbar shows and space is reserved for it */
+	overflow: auto;
 	overflow-x: auto;
 	overflow-y: auto;
 	scrollbar-gutter: stable both-edges;
 	border-top: 1px solid var(--border);
 	border-radius: 0 0 var(--radius) var(--radius);
+	min-height: 300px;
+}
+
+/* Right panel matches left panel height */
+.right-panel {
+	display: flex;
+	flex-direction: column;
+	padding: 12px;
+	height: fit-content;
+	min-height: 400px;
+}
+
+/* Bottom section with charts and notes */
+.below-panels {
+	display: grid;
+	grid-template-columns: 1fr 1fr 300px;
+	gap: 12px;
 }
 
 /* Table */
 table {
 	border-collapse: separate;
 	border-spacing: 0;
-	/* Allow table to expand beyond container to trigger horizontal scroll,
-	   but never be narrower than the container */
 	width: max-content;
 	min-width: 100%;
 }
 thead th {
-	position: sticky; top: 0; background: #10151b;
-	border-bottom: 1px solid var(--border); z-index: 1;
+	position: sticky; 
+	top: 0; 
+	background: #10151b;
+	border-bottom: 1px solid var(--border); 
+	z-index: 1;
 }
-/* tighten spacing and allow wrapping to avoid horizontal scroll */
 th, td {
-	padding: 10px; font-size: 13px; border-bottom: 1px solid var(--border);
-	white-space: normal; /* allow wrap */
+	padding: 10px; 
+	font-size: 14px; 
+	border-bottom: 1px solid var(--border);
+	white-space: normal;
 }
 tbody tr:hover { background: rgba(255,255,255,0.03); }
-.sticky-col {
-	position: sticky; left: 0; background: #10151b; z-index: 2;
-	max-width: 240px; overflow-wrap: anywhere; /* wrap long model names */
-}
-
-/* Right panel */
-.right-panel {
-	display: grid;
-	/* avoid stretching charts; let cards size themselves */
-	grid-template-rows: auto auto auto auto;
-	gap: 12px;
-	padding: 12px;
-	min-height: 0;   /* NEW */
-	overflow: auto;  /* NEW: independent scroll so the table scrollbar isn't hidden */
-}
 
 /* Cards contain their children; canvases fit inside */
 .card {
-	background: #10151b; border: 1px solid var(--border); border-radius: 10px;
-	padding: 8px 12px 12px; min-height: 0;
-	display: flex; flex-direction: column; overflow: hidden;
+	background: #10151b; 
+	border: 1px solid var(--border); 
+	border-radius: 10px;
+	padding: 8px 12px 12px; 
+	min-height: 0;
+	display: flex; 
+	flex-direction: column; 
+	overflow: hidden;
+	min-height: 300px;
 }
-.card h3 { margin: 6px 0 6px 0; }
-.card canvas { width: 100%; height: 260px; display: block; }
-/* Let "Cost by Model" grow a bit but stay compact */
-.right-panel .card:nth-of-type(2) canvas { height: 220px; } /* "Cost by Model" card is second child after KPIs */
+.card h3 { margin: 6px 0 6px 0; font-size: 16px; }
+.card canvas { 
+	width: 100% !important; 
+	height: 260px !important; 
+	max-width: 100% !important;
+	max-height: 260px !important;
+	display: block; 
+	flex-shrink: 0;
+}
 
-/* KPIs tighter layout and aligned text */
-.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 4px; }
-.kpi {
-	background: #10151b; border: 1px solid var(--border); border-radius: 10px;
-	padding: 10px 12px;
-	display: grid; row-gap: 4px; align-content: center; /* consistent vertical rhythm */
+/* KPIs fill available space in right panel */
+.kpis { 
+	display: grid; 
+	grid-template-columns: 1fr;
+	gap: 10px; 
+	margin-bottom: 4px;
+	flex: 1;
 }
-.kpi-title { font-size: 12px; color: var(--muted); line-height: 1; margin: 0; }
-.kpi-value { font-family: var(--mono); font-size: 18px; line-height: 1.15; margin: 0; }
+.kpi {
+	background: #10151b; 
+	border: 1px solid var(--border); 
+	border-radius: 10px;
+	padding: 10px 12px;
+	display: grid; 
+	row-gap: 4px; 
+	align-content: center;
+	min-height: 60px;
+}
 
 /* Notes wrap safely and remain contained */
-.notes { margin: 8px 0 0 18px; padding: 0; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+.notes { margin: 8px 0 0 18px; padding: 0; color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
 
 /* Utility: keep numbers on one line to preserve readability */
 .mono { font-family: var(--mono); white-space: nowrap; }
 
 /* Responsive */
 @media (max-width: 1100px) {
-	.layout { grid-template-columns: 1fr; height: auto; }
-	/* let page be scrollable on small screens */
+	.top-section { 
+		grid-template-columns: 1fr; 
+		gap: 12px;
+	}
+	.below-panels { 
+		grid-template-columns: 1fr;
+	}
+	.kpis { 
+		grid-template-columns: repeat(2, 1fr);
+	}
 	body { overflow: auto; }
-	.right-panel { grid-template-rows: auto auto auto auto; }
 	.model-panel { width: min(90vw, 360px); }
+}
+
+/* Ensure body allows scrolling when content overflows */
+@media (max-height: 800px) {
+	body { 
+		overflow-y: auto; 
+		min-height: 100vh; 
+	}
+	.layout {
+		grid-template-rows: minmax(300px, auto) auto; /* allow natural sizing on short screens */
+	}
+}
+@media (max-height: 800px) {
+	body { 
+		overflow-y: auto; 
+		min-height: 100vh; 
+	}
+	.layout {
+		grid-template-rows: minmax(300px, auto) auto; /* allow natural sizing on short screens */
+	}
 }

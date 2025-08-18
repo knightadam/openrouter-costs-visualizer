@@ -32,6 +32,8 @@
 
 	const fmtUSD = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 3, maximumFractionDigits: 6 });
 	const fmtInt = new Intl.NumberFormat('en-US');
+	// NEW: 2-decimal formatter for compact table cells
+	const fmtUSD2 = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 	const state = {
 		rows: [], filtered: [], models: new Set(),
@@ -273,11 +275,9 @@
 		// Aggregate by model
 		const byModel = new Map();
 		for (const r of rows) {
-			const m = byModel.get(r.model) || { total:0, web:0, cache:0, file:0, byok:0, tp:0, tc:0, tr:0, req:0 };
+			const m = byModel.get(r.model) || { total:0, web:0, byok:0, tp:0, tc:0, tr:0, req:0 };
 			m.total += r.total;
 			m.web += r.web;
-			m.cache += r.cache;   // negative values act as credits naturally
-			m.file += r.file;
 			m.byok += r.byok;
 			m.tp += r.tp;
 			m.tc += r.tc;
@@ -292,12 +292,10 @@
 		for (const [model, v] of sorted) {
 			const tr = document.createElement('tr');
 			tr.innerHTML = `
-				<td class="sticky-col mono">${escapeHTML(model)}</td>
-				<td class="mono">${fmtUSD.format(v.total)}</td>
-				<td class="mono">${fmtUSD.format(v.web)}</td>
-				<td class="mono">${fmtUSD.format(v.cache)}</td>
-				<td class="mono">${fmtUSD.format(v.file)}</td>
-				<td class="mono">${fmtUSD.format(v.byok)}</td>
+				<td class="mono">${escapeHTML(model)}</td>
+				<td class="mono">${fmtUSD2.format(v.total)}</td>
+				<td class="mono">${fmtUSD2.format(v.web)}</td>
+				<td class="mono">${fmtUSD2.format(v.byok)}</td>
 				<td class="mono">${fmtInt.format(v.tp)}</td>
 				<td class="mono">${fmtInt.format(v.tc)}</td>
 				<td class="mono">${fmtInt.format(v.tr)}</td>
@@ -316,19 +314,28 @@
 		const labels = top.map(([m]) => m);
 		const data = top.map(([_, v]) => v);
 
-		if (state.charts.bar) state.charts.bar.destroy();
+		if (state.charts.bar) { 
+			state.charts.bar.destroy(); 
+			state.charts.bar = null; 
+		}
+		
+		// Ensure canvas is properly sized before creating chart
+		const ctx = els.barCanvas.getContext('2d');
+		ctx.clearRect(0, 0, els.barCanvas.width, els.barCanvas.height);
+		
 		state.charts.bar = new Chart(els.barCanvas, {
 			type: 'bar',
 			data: { labels, datasets: [{ label: 'Total Cost (USD)', data, backgroundColor: '#40a0ff' }] },
 			options: {
 				responsive: true,
 				maintainAspectRatio: false,
-				layout: { padding: { bottom: 28 } }, // give room for x-axis labels
+				layout: { padding: { bottom: 0 } },
 				plugins: { legend: { display: false } },
 				scales: {
 					y: { ticks: { callback: v => fmtUSD.format(v) } },
 					x: { ticks: { maxRotation: 60, minRotation: 0, autoSkip: true } }
-				}
+				},
+				animation: { duration: 0 } // Disable animations to prevent growth issues
 			}
 		});
 	}
@@ -345,20 +352,29 @@
 		const labels = sorted.map(([k]) => k);
 		const data = sorted.map(([_, v]) => v);
 
-		if (state.charts.line) state.charts.line.destroy();
+		if (state.charts.line) { 
+			state.charts.line.destroy(); 
+			state.charts.line = null; 
+		}
+		
+		// Ensure canvas is properly sized before creating chart
+		const ctx = els.lineCanvas.getContext('2d');
+		ctx.clearRect(0, 0, els.lineCanvas.width, els.lineCanvas.height);
+		
 		state.charts.line = new Chart(els.lineCanvas, {
 			type: 'line',
 			data: { labels, datasets: [{ label: 'Total Cost (USD)', data, borderColor: '#40a0ff', backgroundColor: 'rgba(64,160,255,0.25)', tension: 0.2, fill: true }] },
 			options: {
 				responsive: true,
 				maintainAspectRatio: false,
-				layout: { padding: { bottom: 24 } },
+				layout: { padding: { bottom: 0 } },
 				plugins: { legend: { display: false } },
 				interaction: { mode: 'index', intersect: false },
 				scales: {
 					y: { ticks: { callback: v => fmtUSD.format(v) } },
 					x: { ticks: { maxRotation: 45, autoSkip: true } }
-				}
+				},
+				animation: { duration: 0 } // Disable animations to prevent growth issues
 			}
 		});
 	}
