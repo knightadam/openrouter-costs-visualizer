@@ -25,15 +25,11 @@
 		lineCanvas: document.getElementById('lineCostOverTime'),
 	};
 
-	const COL = {
-		id: 0, created: 1, total: 2, web: 3, cache: 4, file: 5, byok: 6,
-		tokPrompt: 7, tokCompletion: 8, tokReasoning: 9, model: 10,
-	};
+	let COL = {};
 
-	const fmtUSD = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 3, maximumFractionDigits: 6 });
+	const fmtUSD = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+	const fmtUSD_total = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 4, maximumFractionDigits: 4 });
 	const fmtInt = new Intl.NumberFormat('en-US');
-	// NEW: 2-decimal formatter for compact table cells
-	const fmtUSD2 = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 	const state = {
 		rows: [], filtered: [], models: new Set(),
@@ -50,13 +46,27 @@
 	function parseLine(line) {
 		// Simple CSV split (no quoted fields in sample)
 		const parts = line.split(',');
-		if (parts.length < 11) return null;
 
 		const ts = parts[COL.created]?.trim();
 		let d = ts ? new Date(ts.replace(' ', 'T')) : null;
 		// ensure valid date
 		if (d && isNaN(+d)) d = null;
 		const model = (parts[COL.model] || '').trim();
+
+		const genTimeRaw = parts[COL.genTime];
+		const genTime = toNum(genTimeRaw);
+		
+		// Debug: log first few rows to check data
+		if (state.rows.length < 3) {
+			console.log('Debug row:', {
+				parts: parts.length,
+				genTimeRaw,
+				genTime,
+				model,
+				created: ts,
+				total: parts[COL.total]
+			});
+		}
 
 		return {
 			id: parts[COL.id],
@@ -70,21 +80,49 @@
 			tp: Math.trunc(toNum(parts[COL.tokPrompt])),
 			tc: Math.trunc(toNum(parts[COL.tokCompletion])),
 			tr: Math.trunc(toNum(parts[COL.tokReasoning])),
+			genTime: genTime,
 		};
 	}
 
-	function parseCSV(text) {
-		const lines = text.split(/\r?\n/).filter(l => l.trim().length);
+	function parseCSV(csvText) {
+		const lines = csvText.trim().split('\n');
+		if (lines.length < 2) return;
+
+		// Parse header to get column mapping
+		const header = lines[0].split(',').map(col => col.trim());
+		COL = {
+			id: header.indexOf('generation_id'),
+			created: header.indexOf('created_at'),
+			total: header.indexOf('cost_total'),
+			web: header.indexOf('cost_web_search'),
+			cache: header.indexOf('cost_cache'),
+			file: header.indexOf('cost_file_processing'),
+			byok: header.indexOf('byok_usage_inference'),
+			tokPrompt: header.indexOf('tokens_prompt'),
+			tokCompletion: header.indexOf('tokens_completion'),
+			tokReasoning: header.indexOf('tokens_reasoning'),
+			model: header.indexOf('model_permaslug'),
+			provider: header.indexOf('provider_name'),
+			genTime: header.indexOf('generation_time_ms')
+		};
+
+		// Debug: log column mapping
+		console.log('Column mapping:', COL);
+
 		const rows = [];
 		const models = new Set();
 
-		for (const line of lines) {
+		for (let i = 1; i < lines.length; i++) {
+			const line = lines[i].trim();
+			if (!line) continue;
+			
 			const r = parseLine(line);
 			// skip rows with missing/invalid date or model
 			if (!r || !r.date || !r.model) continue;
 			rows.push(r);
 			models.add(r.model);
 		}
+		
 		state.rows = rows.sort((a, b) => a.date - b.date);
 		state.models = models;
 		populateModelFilter(models);
@@ -237,8 +275,8 @@
 
 	// Rendering
 	function clearUI() {
-		els.kpiTotal.textContent = '-';
 		els.kpiReq.textContent = '-';
+		els.kpiTotal.textContent = '-';
 		els.kpiAvg.textContent = '-';
 		els.kpiWin.textContent = '-';
 		els.tableBody.innerHTML = '';
@@ -265,17 +303,17 @@
 		const maxD = rows[rows.length - 1].date;
 		const fmt = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 
-		els.kpiTotal.textContent = fmtUSD.format(total);
 		els.kpiReq.textContent = fmtInt.format(count);
+		els.kpiTotal.textContent = fmtUSD.format(total);
 		els.kpiAvg.textContent = count ? fmtUSD.format(avg) : '-';
-		els.kpiWin.textContent = `${fmt(minD)} → ${fmt(maxD)}`;
+		els.kpiWin.innerHTML = `${fmt(minD)}<br>${fmt(maxD)}`;
 	}
 
 	function renderTable(rows) {
 		// Aggregate by model
 		const byModel = new Map();
 		for (const r of rows) {
-			const m = byModel.get(r.model) || { total:0, web:0, byok:0, tp:0, tc:0, tr:0, req:0 };
+			const m = byModel.get(r.model) || { total:0, web:0, byok:0, tp:0, tc:0, tr:0, req:0, genTime:0 };
 			m.total += r.total;
 			m.web += r.web;
 			m.byok += r.byok;
@@ -283,23 +321,31 @@
 			m.tc += r.tc;
 			m.tr += r.tr;
 			m.req += 1;
+			m.genTime += r.genTime;
 			byModel.set(r.model, m);
 		}
 
 		const sorted = [...byModel.entries()].sort((a, b) => b[1].total - a[1].total);
 
+		// Debug: log aggregated data for first model
+		if (sorted.length > 0) {
+			console.log('Debug first model aggregation:', sorted[0][1]);
+		}
+
 		els.tableBody.innerHTML = '';
 		for (const [model, v] of sorted) {
+			const avgGenTime = v.req > 0 ? Math.round(v.genTime / v.req) : 0;
 			const tr = document.createElement('tr');
 			tr.innerHTML = `
-				<td class="mono">${escapeHTML(model)}</td>
-				<td class="mono">${fmtUSD2.format(v.total)}</td>
-				<td class="mono">${fmtUSD2.format(v.web)}</td>
-				<td class="mono">${fmtUSD2.format(v.byok)}</td>
-				<td class="mono">${fmtInt.format(v.tp)}</td>
-				<td class="mono">${fmtInt.format(v.tc)}</td>
-				<td class="mono">${fmtInt.format(v.tr)}</td>
-				<td class="mono">${fmtInt.format(v.req)}</td>
+				<td class="model-col mono">${escapeHTML(model)}</td>
+				<td class="mono">${v.req === 0 ? `<span class="zero-value">${fmtInt.format(v.req)}</span>` : fmtInt.format(v.req)}</td>
+				<td class="mono">${v.total === 0 ? `<span class="zero-value">${fmtUSD_total.format(v.total)}</span>` : fmtUSD_total.format(v.total)}</td>
+				<td class="mono">${v.web === 0 ? `<span class="zero-value">${fmtUSD.format(v.web)}</span>` : fmtUSD.format(v.web)}</td>
+				<td class="mono">${v.byok === 0 ? `<span class="zero-value">${fmtUSD.format(v.byok)}</span>` : fmtUSD.format(v.byok)}</td>
+				<td class="mono">${v.tp === 0 ? `<span class="zero-value">${fmtInt.format(v.tp)}</span>` : fmtInt.format(v.tp)}</td>
+				<td class="mono">${v.tc === 0 ? `<span class="zero-value">${fmtInt.format(v.tc)}</span>` : fmtInt.format(v.tc)}</td>
+				<td class="mono">${v.tr === 0 ? `<span class="zero-value">${fmtInt.format(v.tr)}</span>` : fmtInt.format(v.tr)}</td>
+				<td class="mono">${avgGenTime === 0 ? `<span class="zero-value">${fmtInt.format(avgGenTime)}ms</span>` : `${fmtInt.format(avgGenTime)}ms`}</td>
 			`;
 			els.tableBody.appendChild(tr);
 		}

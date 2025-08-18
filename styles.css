@@ -166,9 +166,19 @@ thead th {
 }
 th, td {
 	padding: 10px; 
-	font-size: 14px; 
+	font-size: 16px; /* increased from 14px */
 	border-bottom: 1px solid var(--border);
 	white-space: normal;
+	text-align: center;
+}
+/* Keep model column left-aligned for readability */
+.model-col {
+	left: 0; 
+	background: #10151b;
+	max-width: 240px; 
+	overflow-wrap: anywhere;
+	z-index: 2;
+	text-align: left;
 }
 tbody tr:hover { background: rgba(255,255,255,0.03); }
 
@@ -211,6 +221,17 @@ tbody tr:hover { background: rgba(255,255,255,0.03); }
 	row-gap: 4px; 
 	align-content: center;
 	min-height: 60px;
+}
+
+.kpi-value {
+	font-size: 18px; /* larger KPI values */
+	font-weight: 600;
+	line-height: 1.2;
+}
+
+/* Reduce opacity for zero values */
+.zero-value {
+	opacity: 0.4;
 }
 
 /* Notes wrap safely and remain contained */
