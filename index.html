@@ -63,63 +63,65 @@
 	</header>
 
 	<main class="layout">
-		<section class="top-section">
-			<section class="left-panel">
-				<h2>Costs</h2>
+		<section class="columns">
+			<div class="left-col">
+				<section class="left-panel">
+					<h2>Costs</h2>
+					<div class="table-wrap">
+						<table id="costTable">
+							<thead>
+								<tr>
+									<th>Model</th>
+									<th>Requests</th>
+									<th>Total Cost</th>
+									<th>Web Search</th>
+									<th>BYOK</th>
+									<th>Tokens Prompt</th>
+									<th>Tokens Completion</th>
+									<th>Tokens Reasoning</th>
+									<th>Avg Gen Time</th>
+								</tr>
+							</thead>
+							<tbody>
+								<!-- Filled dynamically -->
+							</tbody>
+						</table>
+					</div>
+				</section>
 
-				<div class="table-wrap">
-					<table id="costTable">
-						<thead>
-							<tr>
-								<th>Model</th>
-								<th>Requests</th>
-								<th>Total Cost</th>
-								<th>Web Search</th>
-								<th>BYOK</th>
-								<th>Tokens Prompt</th>
-								<th>Tokens Completion</th>
-								<th>Tokens Reasoning</th>
-								<th>Avg Gen Time</th>
-							</tr>
-						</thead>
-						<tbody>
-							<!-- Filled dynamically -->
-						</tbody>
-					</table>
+				<div class="left-bottom">
+					<div class="card">
+						<h3>Cost by Model</h3>
+						<canvas id="barCostByModel"></canvas>
+					</div>
+
+					<div class="card">
+						<h3>Cost Over Time</h3>
+						<canvas id="lineCostOverTime"></canvas>
+					</div>
 				</div>
-			</section>
-
-			<section class="right-panel">
-				<div class="kpis">
-					<div class="kpi"><div class="kpi-title">Requests</div><div class="kpi-value" id="kpiRequests">-</div></div>
-					<div class="kpi"><div class="kpi-title">Total Cost</div><div class="kpi-value" id="kpiTotalCost">-</div></div>
-					<div class="kpi"><div class="kpi-title">Avg Cost / Req</div><div class="kpi-value" id="kpiAvgCost">-</div></div>
-					<div class="kpi"><div class="kpi-title">Time Window</div><div class="kpi-value" id="kpiWindow">-</div></div>
-				</div>
-			</section>
-		</section>
-
-		<section class="below-panels">
-			<div class="card">
-				<h3>Cost by Model</h3>
-				<canvas id="barCostByModel"></canvas>
 			</div>
 
-			<div class="card">
-				<h3>Cost Over Time</h3>
-				<canvas id="lineCostOverTime"></canvas>
-			</div>
+			<div class="right-col">
+				<section class="right-panel">
+					<div class="kpis">
+						<div class="kpi"><div class="kpi-title">Requests</div><div class="kpi-value" id="kpiRequests">-</div></div>
+						<div class="kpi"><div class="kpi-title">Total Cost</div><div class="kpi-value" id="kpiTotalCost">-</div></div>
+						<div class="kpi"><div class="kpi-title">Avg Cost / Req</div><div class="kpi-value" id="kpiAvgCost">-</div></div>
+						<div class="kpi"><div class="kpi-title">Time Window</div><div class="kpi-value" id="kpiWindow">-</div></div>
+					</div>
+				</section>
 
-			<div class="card">
-				<h3>Notes</h3>
-				<ul class="notes">
-					<li>Blank numeric fields are treated as 0. Negative cache values are summed as credits.</li>
-					<li>Use multi-select to focus on one or more models.</li>
-					<li>Date inputs use native calendar pickers; filtering is inclusive for whole days.</li>
-				</ul>
+				<div class="card notes-card">
+					<h3>Notes</h3>
+					<ul class="notes">
+						<li>Blank numeric fields are treated as 0. Negative cache values are summed as credits.</li>
+						<li>Use the model filter to focus on one or more models.</li>
+						<li>Date inputs use native calendar pickers; filtering is inclusive for whole days.</li>
+					</ul>
+				</div>
 			</div>
 		</section>
 	</main>
 </body>
-</html>
 </html>

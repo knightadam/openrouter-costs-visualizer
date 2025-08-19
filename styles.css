@@ -165,16 +165,39 @@ html, body {
 	padding: 12px;
 }
 
-/* Top section with table and KPIs side by side */
-.top-section {
+/* NEW: two-column layout that replaces top/bottom sections */
+.columns {
 	display: grid;
-	grid-template-columns: 1fr 300px;
+	grid-template-columns: 1fr 320px; /* left grows, right fixed-ish */
 	gap: 12px;
-	flex: 1 1 auto; /* allow shrink/grow within the page column */
-	overflow: hidden; /* contain overflowing children (table scrolls inside) */
-	min-height: 400px; /* ensure section doesn't disappear; page will scroll */
+	flex: 1 1 auto;
+	min-height: 0;
 }
 
+/* Left column: table on top, charts below */
+.left-col {
+	display: grid;
+	grid-template-rows: minmax(300px, auto) minmax(300px, auto);
+	gap: 12px;
+	min-height: 0;
+}
+.left-bottom {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 12px;
+	min-height: 0;
+}
+
+/* Right column: KPIs grow, Notes stays compact at bottom */
+.right-col {
+	display: grid;
+	/* was: grid-template-rows: 1fr auto; */
+	grid-template-rows: minmax(0, 1fr) auto; /* allow first row to shrink and scroll */
+	gap: 12px;
+	min-height: 0;
+}
+
+/* Panels */
 .left-panel, .right-panel {
 	background: var(--panel);
 	border: 1px solid var(--border);
@@ -203,13 +226,14 @@ html, body {
 	overflow: auto;
 }
 
-/* Right panel matches left panel height */
+/* Right panel now fills available space in its column */
 .right-panel {
 	display: flex;
 	flex-direction: column;
 	padding: 12px;
-	height: auto; /* was: fit-content; allow stretching with the grid area */
-	min-height: 400px;
+	height: 100%; /* fill the 1fr row */
+	min-height: 0;
+	overflow: auto; /* enable internal scroll instead of overlapping Notes */
 }
 
 /* Bottom section with charts and notes */
@@ -273,18 +297,22 @@ tbody tr:hover { background: rgba(255,255,255,0.03); }
 	flex-shrink: 0;
 }
 
-/* KPIs fill available space in right panel */
+/* Compact notes card so KPIs can grow */
+.notes-card {
+	min-height: 120px; /* smaller than default 300px */
+}
+
+/* KPIs should be able to grow and fill available space */
 .kpis { 
 	display: grid; 
 	grid-template-columns: 1fr;
 	gap: 10px; 
 	margin-bottom: 4px;
-	/* was: flex: 1; don't make KPIs fill the right panel height */
-	flex: 0 0 auto;
-	/* avoid stretching rows/items; keep KPIs compact at the top */
+	flex: 1 1 auto; /* allow growth within right-panel */
 	align-content: start;
 	align-items: start;
 }
+
 .kpi {
 	background: #10151b; 
 	border: 1px solid var(--border); 
@@ -315,12 +343,12 @@ tbody tr:hover { background: rgba(255,255,255,0.03); }
 
 /* Responsive */
 @media (max-width: 1100px) {
-	.top-section { 
-		grid-template-columns: 1fr; 
-		gap: 12px;
-	}
-	.below-panels { 
+	/* Replace old section stacking with new column stacking */
+	.columns {
 		grid-template-columns: 1fr;
+	}
+	.left-bottom {
+		grid-template-columns: 1fr; /* stack charts vertically */
 	}
 	.kpis { 
 		grid-template-columns: repeat(2, 1fr);
@@ -329,16 +357,17 @@ tbody tr:hover { background: rgba(255,255,255,0.03); }
 	.model-panel { width: min(90vw, 360px); }
 }
 
-/* Ensure body allows scrolling when content overflows */
-@media (max-height: 800px) {
-	body { 
-		overflow-y: auto; 
-		min-height: 100vh; 
+/* Short viewport hardening */
+@media (max-height: 750px) {
+	.kpis { 
+		flex: 0 0 auto; /* avoid overgrowing KPIs on short heights */
 	}
-	.layout {
-		grid-template-rows: minmax(300px, auto) auto; /* allow natural sizing on short screens */
+	.kpi {
+		min-height: 48px; /* more compact KPI tiles */
 	}
 }
+
+/* Ensure body allows scrolling when content overflows */
 @media (max-height: 800px) {
 	body { 
 		overflow-y: auto; 
