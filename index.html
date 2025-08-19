@@ -15,10 +15,18 @@
 		<div class="brand">OpenRouter Cost Visualizer</div>
 
 		<div class="controls">
-			<label class="control">
-				<span>CSV file</span>
-				<input id="csvFile" type="file" accept=".csv" />
-			</label>
+			<div class="control">
+				<div id="dropZone" class="drop-zone">
+					<div class="drop-zone-content">
+						<div class="drop-zone-icon">📁</div>
+						<div class="drop-zone-text">
+							<div>Drop CSV file here</div>
+							<div class="drop-zone-subtext">or click to browse</div>
+						</div>
+					</div>
+					<input id="csvFile" type="file" accept=".csv" hidden />
+				</div>
+			</div>
 
 			<div class="divider"></div>
 

@@ -2,6 +2,7 @@
 (() => {
 	const els = {
 		file: document.getElementById('csvFile'),
+		dropZone: document.getElementById('dropZone'),
 		from: document.getElementById('fromDate'),
 		to: document.getElementById('toDate'),
 		// old multi-select may be absent; keep optional
@@ -430,13 +431,66 @@
 		return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 	}
 
+	// File handling functions
+	function handleFile(file) {
+		if (!file || !file.name.toLowerCase().endsWith('.csv')) {
+			alert('Please select a CSV file.');
+			return;
+		}
+		
+		const reader = new FileReader();
+		reader.onload = () => {
+			parseCSV(String(reader.result || ''));
+			updateDropZoneState(file.name);
+		};
+		reader.readAsText(file);
+	}
+
+	function updateDropZoneState(filename) {
+		if (!els.dropZone) return;
+		
+		if (filename) {
+			els.dropZone.classList.add('has-file');
+			const textEl = els.dropZone.querySelector('.drop-zone-text div:first-child');
+			if (textEl) textEl.textContent = filename;
+		} else {
+			els.dropZone.classList.remove('has-file');
+			const textEl = els.dropZone.querySelector('.drop-zone-text div:first-child');
+			if (textEl) textEl.textContent = 'Drop CSV file here';
+		}
+	}
+
 	// Events
 	els.file?.addEventListener('change', (e) => {
 		const f = e.target.files?.[0];
-		if (!f) return;
-		const reader = new FileReader();
-		reader.onload = () => parseCSV(String(reader.result || ''));
-		reader.readAsText(f);
+		if (f) handleFile(f);
+	});
+
+	// Drop zone events
+	els.dropZone?.addEventListener('click', () => {
+		els.file?.click();
+	});
+
+	els.dropZone?.addEventListener('dragover', (e) => {
+		e.preventDefault();
+		els.dropZone.classList.add('drag-over');
+	});
+
+	els.dropZone?.addEventListener('dragleave', (e) => {
+		e.preventDefault();
+		if (!els.dropZone.contains(e.relatedTarget)) {
+			els.dropZone.classList.remove('drag-over');
+		}
+	});
+
+	els.dropZone?.addEventListener('drop', (e) => {
+		e.preventDefault();
+		els.dropZone.classList.remove('drag-over');
+		
+		const files = e.dataTransfer?.files;
+		if (files && files.length > 0) {
+			handleFile(files[0]);
+		}
 	});
 
 	els.btnApply?.addEventListener('click', applyFilters);

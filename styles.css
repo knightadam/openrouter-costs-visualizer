@@ -49,6 +49,68 @@ html, body {
 	padding: 8px 10px; border-radius: 8px; min-width: 180px;
 }
 .control select[multiple] { min-width: 220px; min-height: 40px; }
+
+/* Drop zone styles */
+.drop-zone {
+	border: 2px dashed var(--border);
+	border-radius: 8px;
+	padding: 8px 12px;
+	text-align: center;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	background: var(--panel);
+	min-width: 220px;
+	position: relative;
+	min-height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.drop-zone:hover {
+	border-color: var(--accent);
+	background: rgba(64, 160, 255, 0.05);
+}
+
+.drop-zone.drag-over {
+	border-color: var(--accent);
+	background: rgba(64, 160, 255, 0.1);
+	border-style: solid;
+}
+
+.drop-zone-content {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	pointer-events: none;
+}
+
+.drop-zone-icon {
+	font-size: 16px;
+	opacity: 0.7;
+}
+
+.drop-zone-text {
+	font-size: 14px;
+	color: var(--text);
+	line-height: 1.2;
+}
+
+.drop-zone-subtext {
+	font-size: 11px;
+	color: var(--muted);
+	margin-top: 1px;
+}
+
+.drop-zone.has-file {
+	border-color: var(--pos);
+	background: rgba(53, 194, 107, 0.1);
+}
+
+.drop-zone.has-file .drop-zone-icon {
+	color: var(--pos);
+}
+
 .divider { width: 1px; height: 36px; background: var(--border); align-self: center; }
 
 .btn {
@@ -108,7 +170,9 @@ html, body {
 	display: grid;
 	grid-template-columns: 1fr 300px;
 	gap: 12px;
-	min-height: 400px; /* ensure adequate space for table */
+	flex: 1 1 auto; /* allow shrink/grow within the page column */
+	overflow: hidden; /* contain overflowing children (table scrolls inside) */
+	min-height: 400px; /* ensure section doesn't disappear; page will scroll */
 }
 
 .left-panel, .right-panel {
@@ -120,7 +184,9 @@ html, body {
 .left-panel { 
 	display: flex; 
 	flex-direction: column;
-	min-height: 400px;
+	/* was: min-height: 400px; let the table area scroll instead of growing the section */
+	min-height: 0;
+	overflow: hidden; /* confine scrolling to .table-wrap */
 }
 .left-panel h2, .right-panel h3 { margin: 6px 12px 4px 12px; font-size: 18px; }
 .table-wrap {
@@ -131,7 +197,10 @@ html, body {
 	scrollbar-gutter: stable both-edges;
 	border-top: 1px solid var(--border);
 	border-radius: 0 0 var(--radius) var(--radius);
-	min-height: 300px;
+	/* make the table area the scroll container */
+	min-height: 0; /* was: 300px */
+	max-height: 100%;
+	overflow: auto;
 }
 
 /* Right panel matches left panel height */
@@ -139,7 +208,7 @@ html, body {
 	display: flex;
 	flex-direction: column;
 	padding: 12px;
-	height: fit-content;
+	height: auto; /* was: fit-content; allow stretching with the grid area */
 	min-height: 400px;
 }
 
@@ -210,7 +279,11 @@ tbody tr:hover { background: rgba(255,255,255,0.03); }
 	grid-template-columns: 1fr;
 	gap: 10px; 
 	margin-bottom: 4px;
-	flex: 1;
+	/* was: flex: 1; don't make KPIs fill the right panel height */
+	flex: 0 0 auto;
+	/* avoid stretching rows/items; keep KPIs compact at the top */
+	align-content: start;
+	align-items: start;
 }
 .kpi {
 	background: #10151b; 
