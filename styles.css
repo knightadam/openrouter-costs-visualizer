@@ -341,6 +341,29 @@ tbody tr:hover { background: rgba(255,255,255,0.03); }
 /* Utility: keep numbers on one line to preserve readability */
 .mono { font-family: var(--mono); white-space: nowrap; }
 
+/* About Me card styles */
+.about-me-card {
+	min-height: 120px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.about-me-content {
+	text-align: center;
+	color: var(--muted);
+	font-size: 15px;
+}
+
+.about-link {
+	color: var(--accent);
+	text-decoration: none;
+	font-size: 14px;
+}
+.about-link:hover {
+	text-decoration: underline;
+}
+
 /* Responsive */
 @media (max-width: 1100px) {
 	/* Replace old section stacking with new column stacking */
