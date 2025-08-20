@@ -29,7 +29,8 @@
 	let COL = {};
 
 	const fmtUSD = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 });
-	const fmtUSD_total = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 4, maximumFractionDigits: 4 });
+	const fmtUSD_4dec = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 4, maximumFractionDigits: 4 });
+	const fmtUSD_6dec = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 6, maximumFractionDigits: 6 });
 	const fmtInt = new Intl.NumberFormat('en-US');
 
 	const state = {
@@ -306,7 +307,7 @@
 
 		els.kpiReq.textContent = fmtInt.format(count);
 		els.kpiTotal.textContent = fmtUSD.format(total);
-		els.kpiAvg.textContent = count ? fmtUSD.format(avg) : '-';
+		els.kpiAvg.textContent = count ? fmtUSD_6dec.format(avg) : '-';
 		els.kpiWin.innerHTML = `${fmt(minD)}<br>${fmt(maxD)}`;
 	}
 
@@ -340,7 +341,7 @@
 			tr.innerHTML = `
 				<td class="model-col mono">${escapeHTML(model)}</td>
 				<td class="mono">${v.req === 0 ? `<span class="zero-value">${fmtInt.format(v.req)}</span>` : fmtInt.format(v.req)}</td>
-				<td class="mono">${v.total === 0 ? `<span class="zero-value">${fmtUSD_total.format(v.total)}</span>` : fmtUSD_total.format(v.total)}</td>
+				<td class="mono">${v.total === 0 ? `<span class="zero-value">${fmtUSD_4dec.format(v.total)}</span>` : fmtUSD_4dec.format(v.total)}</td>
 				<td class="mono">${v.web === 0 ? `<span class="zero-value">${fmtUSD.format(v.web)}</span>` : fmtUSD.format(v.web)}</td>
 				<td class="mono">${v.byok === 0 ? `<span class="zero-value">${fmtUSD.format(v.byok)}</span>` : fmtUSD.format(v.byok)}</td>
 				<td class="mono">${v.tp === 0 ? `<span class="zero-value">${fmtInt.format(v.tp)}</span>` : fmtInt.format(v.tp)}</td>
