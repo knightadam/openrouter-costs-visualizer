@@ -342,8 +342,8 @@
 				<td class="model-col mono">${escapeHTML(model)}</td>
 				<td class="mono">${v.req === 0 ? `<span class="zero-value">${fmtInt.format(v.req)}</span>` : fmtInt.format(v.req)}</td>
 				<td class="mono">${v.total === 0 ? `<span class="zero-value">${fmtUSD_4dec.format(v.total)}</span>` : fmtUSD_4dec.format(v.total)}</td>
-				<td class="mono">${v.web === 0 ? `<span class="zero-value">${fmtUSD.format(v.web)}</span>` : fmtUSD.format(v.web)}</td>
 				<td class="mono">${v.byok === 0 ? `<span class="zero-value">${fmtUSD.format(v.byok)}</span>` : fmtUSD.format(v.byok)}</td>
+				<td class="mono">${v.web === 0 ? `<span class="zero-value">${fmtUSD.format(v.web)}</span>` : fmtUSD.format(v.web)}</td>
 				<td class="mono">${v.tp === 0 ? `<span class="zero-value">${fmtInt.format(v.tp)}</span>` : fmtInt.format(v.tp)}</td>
 				<td class="mono">${v.tc === 0 ? `<span class="zero-value">${fmtInt.format(v.tc)}</span>` : fmtInt.format(v.tc)}</td>
 				<td class="mono">${v.tr === 0 ? `<span class="zero-value">${fmtInt.format(v.tr)}</span>` : fmtInt.format(v.tr)}</td>

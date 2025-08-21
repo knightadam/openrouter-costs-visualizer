@@ -163,6 +163,8 @@ html, body {
 	flex-direction: column;
 	gap: 12px;
 	padding: 12px;
+	max-height: none; /* contain within viewport */
+	box-sizing: border-box;
 }
 
 /* NEW: two-column layout that replaces top/bottom sections */
@@ -172,20 +174,24 @@ html, body {
 	gap: 12px;
 	flex: 1 1 auto;
 	min-height: 0;
+	max-height: 100%; /* contain within layout */
 }
 
 /* Left column: table on top, charts below */
 .left-col {
 	display: grid;
-	grid-template-rows: minmax(300px, auto) minmax(300px, auto);
+	/* Give the table more space than the charts */
+	grid-template-rows: 1fr auto;
 	gap: 12px;
 	min-height: 0;
+	max-height: 100%;
 }
 .left-bottom {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	gap: 12px;
 	min-height: 0;
+	height: 280px; /* fixed height for charts */
 }
 
 /* Right column: KPIs grow, Notes stays compact at bottom */
@@ -207,9 +213,9 @@ html, body {
 .left-panel { 
 	display: flex; 
 	flex-direction: column;
-	/* was: min-height: 400px; let the table area scroll instead of growing the section */
 	min-height: 0;
 	overflow: hidden; /* confine scrolling to .table-wrap */
+	height: 100%; /* fill available space in grid row */
 }
 .left-panel h2, .right-panel h3 { margin: 6px 12px 4px 12px; font-size: 18px; }
 .table-wrap {
@@ -304,16 +310,16 @@ tbody tr:hover { background: rgba(255,255,255,0.03); }
 	display: flex; 
 	flex-direction: column; 
 	overflow: hidden;
-	min-height: 300px;
+	height: 100%; /* fill available space */
 }
 .card h3 { margin: 6px 0 6px 0; font-size: 16px; }
 .card canvas { 
 	width: 100% !important; 
-	height: 260px !important; 
+	height: 100% !important; 
 	max-width: 100% !important;
-	max-height: 260px !important;
+	max-height: 100% !important;
 	display: block; 
-	flex-shrink: 0;
+	flex: 1 1 auto;
 }
 
 /* Compact notes card so KPIs can grow */
@@ -386,54 +392,87 @@ tbody tr:hover { background: rgba(255,255,255,0.03); }
 
 /* Responsive */
 @media (max-width: 1100px) {
-	/* Replace old section stacking with new column stacking */
+	/* Switch to scrollable layout for smaller screens */
+	.layout {
+		max-height: none; /* remove height constraint */
+		min-height: 100vh; /* ensure full page coverage */
+	}
+	
 	.columns {
-		/* ...existing code... */
-		/* Ensure natural page flow instead of fixed-height grid on small screens */
 		display: block;
 		flex: 0 0 auto;
 		min-height: auto;
 		height: auto;
+		max-height: none;
+	}
+	
+	.left-col {
+		display: block; /* remove grid completely */
+		grid-template-rows: none;
+		max-height: none;
+	}
+	
+	.left-bottom {
+		grid-template-columns: 1fr; /* stack charts vertically */
+		height: auto; /* remove fixed height */
+		margin-top: 12px;
+	}
+	
+	.card {
+		height: 280px; /* fixed height for charts on mobile */
+		min-height: 280px;
+	}
+	
+	.card canvas {
+		height: 220px !important;
+		max-height: 220px !important;
+	}
+	
+	.kpis { 
+		grid-template-columns: repeat(2, 1fr);
+	}
+	
+	body { overflow: auto; }
+	.model-panel { width: min(90vw, 360px); }
+
+	/* Make right column flow under the left column content */
+	.right-col {
+		display: block;
+		grid-template-rows: none;
+		min-height: auto;
+		margin-top: 12px;
+		max-height: none;
+	}
+	
+	.right-panel {
+		height: auto;
+		overflow: visible;
+	}
+}
+
+/* Short viewport adjustments */
+@media (max-height: 800px) {
+	.layout {
+		max-height: none; /* allow scrolling on short screens */
+		min-height: 100vh;
+	}
+	.columns {
+		max-height: none;
+	}
+	.left-col {
+		max-height: none;
 	}
 	.left-bottom {
-		/* ...existing code... */
+		height: 240px; /* slightly smaller charts on short screens */
 	}
 	.kpis { 
-		/* ...existing code... */
-	}
-	body { /* ...existing code... */ }
-	.model-panel { /* ...existing code... */ }
-
-	/* Make right column and panel flow under the left column content */
-	.right-col {
-		display: block;           /* drop internal grid */
-		grid-template-rows: none; /* safety: disable row template */
-		min-height: auto;
-		margin-top: 12px;         /* spacing after left column */
-	}
-	.right-panel {
-		height: auto;     /* was: 100%; avoid overlay */
-		overflow: visible;/* avoid nested scrolling */
-	}
-}
-
-/* Short viewport hardening */
-@media (max-height: 750px) {
-	.kpis { 
-		flex: 0 0 auto; /* avoid overgrowing KPIs on short heights */
+		flex: 0 0 auto;
 	}
 	.kpi {
-		min-height: 48px; /* more compact KPI tiles */
+		min-height: 48px;
 	}
-}
-
-/* Ensure body allows scrolling when content overflows */
-@media (max-height: 800px) {
 	body { 
 		overflow-y: auto; 
 		min-height: 100vh; 
-	}
-	.layout {
-		grid-template-rows: minmax(300px, auto) auto; /* allow natural sizing on short screens */
 	}
 }
