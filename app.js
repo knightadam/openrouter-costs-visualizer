@@ -41,6 +41,14 @@
 	const fmtUSD_6dec = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 6, maximumFractionDigits: 6 });
 	const fmtInt = new Intl.NumberFormat('en-US');
 
+	// Grouped default column visibility
+	const DEFAULT_COL_VISIBILITY = {
+		model: true, req: true, total: true, byok: true, web: true,
+		cache: false, file: false, tp: true, avgTp: false, tc: false, 
+		tokenOutput: true, avgTokenOutput: false, tr: true, avgTr: false, 
+		genTime: true, ttft: false
+	};
+
 	const state = {
 		rows: [], filtered: [], models: new Set(),
 		selectedModels: new Set(),
@@ -497,26 +505,14 @@
 			const saved = localStorage.getItem('openrouter-column-visibility');
 			if (saved) {
 				const parsed = JSON.parse(saved);
-				// Ensure all columns are present and valid
-				const defaults = {
-					model: true, req: true, total: true, byok: true, web: true,
-					cache: false, file: false, tp: true, avgTp: true, tc: false, 
-					tokenOutput: true, avgTokenOutput: true, tr: true, avgTr: true, 
-					genTime: true, ttft: false
-				};
 				// Merge saved preferences with defaults for any missing columns
-				return { ...defaults, ...parsed };
+				return { ...DEFAULT_COL_VISIBILITY, ...parsed };
 			}
 		} catch (e) {
 			console.warn('Failed to load column visibility from localStorage:', e);
 		}
 		// Return defaults if no saved state or error
-		return {
-			model: true, req: true, total: true, byok: true, web: true,
-			cache: false, file: false, tp: true, avgTp: true, tc: false, 
-			tokenOutput: true, avgTokenOutput: true, tr: true, avgTr: true, 
-			genTime: true, ttft: false
-		};
+		return { ...DEFAULT_COL_VISIBILITY };
 	}
 
 	// Save column visibility to localStorage
@@ -598,17 +594,13 @@
 			applyColumnVisibility();
 		});
 		defaultBtn.addEventListener('click', () => {
-			// Restore default: model, req, total always true; cache, file, ttft false; others true
-			const defaults = {
-				model: true, req: true, total: true, byok: true, web: true,
-				cache: false, file: false, tp: true, avgTp: false, tc: false, tokenOutput: true, avgTokenOutput: false, tr: true, avgTr: false, genTime: true, ttft: false
-			};
+			// Restore default using the constant
 			for (const k of COL_KEYS) {
-				state.colVisibility[k] = defaults[k];
+				state.colVisibility[k] = DEFAULT_COL_VISIBILITY[k];
 			}
 			for (const cb of els.colList.querySelectorAll('input[type="checkbox"]')) {
 				const k = cb.getAttribute('data-key');
-				cb.checked = !!defaults[k];
+				cb.checked = !!DEFAULT_COL_VISIBILITY[k];
 			}
 			applyColumnVisibility();
 		});
