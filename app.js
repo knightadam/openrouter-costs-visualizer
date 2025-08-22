@@ -45,11 +45,8 @@
 		rows: [], filtered: [], models: new Set(),
 		selectedModels: new Set(),
 		charts: { bar: null, line: null },
-		// Default visibility: hide cache, file, ttft
-		colVisibility: {
-			model: true, req: true, total: true, byok: true, web: true,
-			cache: false, file: false, tp: true, tc: false, tokenOutput: true, tr: true, genTime: true, ttft: false
-		}
+		// Load column visibility from localStorage or use defaults
+		colVisibility: loadColumnVisibility()
 	};
 
 	// Column metadata
@@ -494,6 +491,43 @@
 		});
 	}
 
+	// Load column visibility from localStorage
+	function loadColumnVisibility() {
+		try {
+			const saved = localStorage.getItem('openrouter-column-visibility');
+			if (saved) {
+				const parsed = JSON.parse(saved);
+				// Ensure all columns are present and valid
+				const defaults = {
+					model: true, req: true, total: true, byok: true, web: true,
+					cache: false, file: false, tp: true, avgTp: true, tc: false, 
+					tokenOutput: true, avgTokenOutput: true, tr: true, avgTr: true, 
+					genTime: true, ttft: false
+				};
+				// Merge saved preferences with defaults for any missing columns
+				return { ...defaults, ...parsed };
+			}
+		} catch (e) {
+			console.warn('Failed to load column visibility from localStorage:', e);
+		}
+		// Return defaults if no saved state or error
+		return {
+			model: true, req: true, total: true, byok: true, web: true,
+			cache: false, file: false, tp: true, avgTp: true, tc: false, 
+			tokenOutput: true, avgTokenOutput: true, tr: true, avgTr: true, 
+			genTime: true, ttft: false
+		};
+	}
+
+	// Save column visibility to localStorage
+	function saveColumnVisibility() {
+		try {
+			localStorage.setItem('openrouter-column-visibility', JSON.stringify(state.colVisibility));
+		} catch (e) {
+			console.warn('Failed to save column visibility to localStorage:', e);
+		}
+	}
+
 	// Apply visibility to headers and cells
 	function applyColumnVisibility() {
 		const table = document.getElementById('costTable');
@@ -505,6 +539,8 @@
 				else el.classList.add('col-hidden');
 			});
 		}
+		// Save preferences after applying changes
+		saveColumnVisibility();
 	}
 
 	// Column filter UI
@@ -704,6 +740,6 @@
 
 	// Initialize column filter UI once
 	initColumnFilterUI();
-	// Ensure header reflects default visibility on load
+	// Ensure header reflects saved visibility on load
 	applyColumnVisibility();
 })();
