@@ -601,7 +601,7 @@
 			// Restore default: model, req, total always true; cache, file, ttft false; others true
 			const defaults = {
 				model: true, req: true, total: true, byok: true, web: true,
-				cache: false, file: false, tp: true, avgTp: true, tc: false, tokenOutput: true, avgTokenOutput: true, tr: true, avgTr: true, genTime: true, ttft: false
+				cache: false, file: false, tp: true, avgTp: false, tc: false, tokenOutput: true, avgTokenOutput: false, tr: true, avgTr: false, genTime: true, ttft: false
 			};
 			for (const k of COL_KEYS) {
 				state.colVisibility[k] = defaults[k];
