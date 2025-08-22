@@ -24,7 +24,8 @@
 
 		btnApply: document.getElementById('applyFilters'),
 		btnReset: document.getElementById('resetFilters'),
-		kpiTotal: document.getElementById('kpiTotalCost'),
+		kpiOpenRouterCost: document.getElementById('kpiOpenRouterCost'),
+		kpiTotalCost: document.getElementById('kpiTotalCost'),
 		kpiReq: document.getElementById('kpiRequests'),
 		kpiAvg: document.getElementById('kpiAvgCost'),
 		kpiWin: document.getElementById('kpiWindow'),
@@ -47,12 +48,12 @@
 		// Default visibility: hide cache, file, ttft
 		colVisibility: {
 			model: true, req: true, total: true, byok: true, web: true,
-			cache: false, file: false, tp: true, tc: true, tr: true, genTime: true, ttft: false
+			cache: false, file: false, tp: true, tc: false, tokenOutput: true, tr: true, genTime: true, ttft: false
 		}
 	};
 
 	// Column metadata
-	const COL_KEYS = ['model','req','total','byok','web','cache','file','tp','tc','tr','genTime','ttft'];
+	const COL_KEYS = ['model','req','total','byok','web','cache','file','tp','tc','tokenOutput','tr','genTime','ttft'];
 	const COL_LABELS = {
 		model: 'Model',
 		req: 'Requests',
@@ -63,6 +64,7 @@
 		file: 'File Processing',
 		tp: 'Tokens Prompt',
 		tc: 'Tokens Completion',
+		tokenOutput: 'Token Output',
 		tr: 'Tokens Reasoning',
 		genTime: 'Avg Gen Time',
 		ttft: 'Avg TTFT'
@@ -313,7 +315,8 @@
 	// Rendering
 	function clearUI() {
 		els.kpiReq.textContent = '-';
-		els.kpiTotal.textContent = '-';
+		els.kpiOpenRouterCost.textContent = '-';
+		els.kpiTotalCost.textContent = '-';
 		els.kpiAvg.textContent = '-';
 		els.kpiWin.textContent = '-';
 		els.tableBody.innerHTML = '';
@@ -334,15 +337,21 @@
 	}
 
 	function renderKPIs(rows) {
-		const total = rows.reduce((s, r) => s + r.total, 0);
+		const totalOpenRouter = rows.reduce((s, r) => s + r.total, 0);
+		const totalByok = rows.reduce((s, r) => s + r.byok, 0);
+		const totalWeb = rows.reduce((s, r) => s + r.web, 0);
+		const totalFile = rows.reduce((s, r) => s + r.file, 0);
+		const totalCache = rows.reduce((s, r) => s + r.cache, 0);
+		const totalCost = totalOpenRouter + totalByok + totalWeb + totalFile + totalCache;
 		const count = rows.length;
-		const avg = count ? total / count : 0;
+		const avg = count ? totalOpenRouter / count : 0;
 		const minD = rows[0].date;
 		const maxD = rows[rows.length - 1].date;
 		const fmt = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 
 		els.kpiReq.textContent = fmtInt.format(count);
-		els.kpiTotal.textContent = fmtUSD.format(total);
+		els.kpiOpenRouterCost.textContent = fmtUSD_4dec.format(totalOpenRouter);
+		els.kpiTotalCost.textContent = fmtUSD_4dec.format(totalCost);
 		els.kpiAvg.textContent = count ? fmtUSD_6dec.format(avg) : '-';
 		els.kpiWin.innerHTML = `${fmt(minD)}<br>${fmt(maxD)}`;
 	}
@@ -351,7 +360,7 @@
 		// Aggregate by model
 		const byModel = new Map();
 		for (const r of rows) {
-			const m = byModel.get(r.model) || { total:0, web:0, cache:0, file:0, byok:0, tp:0, tc:0, tr:0, req:0, genTime:0, ttft:0 };
+			const m = byModel.get(r.model) || { total:0, web:0, cache:0, file:0, byok:0, tp:0, tc:0, tokenOutput:0, tr:0, req:0, genTime:0, ttft:0 };
 			m.total += r.total;
 			m.web += r.web;
 			m.cache += r.cache;
@@ -359,6 +368,7 @@
 			m.byok += r.byok;
 			m.tp += r.tp;
 			m.tc += r.tc;
+			m.tokenOutput += (r.tc - r.tr);
 			m.tr += r.tr;
 			m.req += 1;
 			m.genTime += r.genTime;
@@ -388,6 +398,7 @@
 				<td data-col="file" class="mono">${v.file === 0 ? `<span class="zero-value">${fmtUSD.format(v.file)}</span>` : fmtUSD.format(v.file)}</td>
 				<td data-col="tp" class="mono">${v.tp === 0 ? `<span class="zero-value">${fmtInt.format(v.tp)}</span>` : fmtInt.format(v.tp)}</td>
 				<td data-col="tc" class="mono">${v.tc === 0 ? `<span class="zero-value">${fmtInt.format(v.tc)}</span>` : fmtInt.format(v.tc)}</td>
+				<td data-col="tokenOutput" class="mono">${v.tokenOutput === 0 ? `<span class="zero-value">${fmtInt.format(v.tokenOutput)}</span>` : fmtInt.format(v.tokenOutput)}</td>
 				<td data-col="tr" class="mono">${v.tr === 0 ? `<span class="zero-value">${fmtInt.format(v.tr)}</span>` : fmtInt.format(v.tr)}</td>
 				<td data-col="genTime" class="mono">${avgGenTime === 0 ? `<span class="zero-value">${fmtInt.format(avgGenTime)}ms</span>` : `${fmtInt.format(avgGenTime)}ms`}</td>
 				<td data-col="ttft" class="mono">${avgTtft === 0 ? `<span class="zero-value">${fmtInt.format(avgTtft)}ms</span>` : `${fmtInt.format(avgTtft)}ms`}</td>
