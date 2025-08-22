@@ -53,7 +53,10 @@
 	};
 
 	// Column metadata
-	const COL_KEYS = ['model','req','total','byok','web','cache','file','tp','tc','tokenOutput','tr','genTime','ttft'];
+	const COL_KEYS = [
+		'model','req','total','byok','web','cache','file',
+		'tp','avgTp','tc','tokenOutput','avgTokenOutput','tr','avgTr','genTime','ttft'
+	];
 	const COL_LABELS = {
 		model: 'Model',
 		req: 'Requests',
@@ -63,9 +66,12 @@
 		cache: 'Cache',
 		file: 'File Processing',
 		tp: 'Tokens Prompt',
+		avgTp: 'Avg Tokens Prompt',
 		tc: 'Tokens Completion',
 		tokenOutput: 'Token Output',
+		avgTokenOutput: 'Avg Token Output',
 		tr: 'Tokens Reasoning',
+		avgTr: 'Avg Tokens Reasoning',
 		genTime: 'Avg Gen Time',
 		ttft: 'Avg TTFT'
 	};
@@ -387,6 +393,10 @@
 		for (const [model, v] of sorted) {
 			const avgGenTime = v.req > 0 ? Math.round(v.genTime / v.req) : 0;
 			const avgTtft = v.req > 0 ? Math.round(v.ttft / v.req) : 0;
+			const avgTp = v.req > 0 ? Math.round(v.tp / v.req) : 0;
+			// Use 2 decimals for avgTokenOutput
+			const avgTokenOutput = v.req > 0 ? (v.tokenOutput / v.req) : 0;
+			const avgTr = v.req > 0 ? Math.round(v.tr / v.req) : 0;
 			const tr = document.createElement('tr');
 			tr.innerHTML = `
 				<td data-col="model" class="model-col mono">${escapeHTML(model)}</td>
@@ -397,9 +407,12 @@
 				<td data-col="cache" class="mono">${v.cache === 0 ? `<span class="zero-value">${fmtUSD.format(v.cache)}</span>` : fmtUSD.format(v.cache)}</td>
 				<td data-col="file" class="mono">${v.file === 0 ? `<span class="zero-value">${fmtUSD.format(v.file)}</span>` : fmtUSD.format(v.file)}</td>
 				<td data-col="tp" class="mono">${v.tp === 0 ? `<span class="zero-value">${fmtInt.format(v.tp)}</span>` : fmtInt.format(v.tp)}</td>
+				<td data-col="avgTp" class="mono">${avgTp === 0 ? `<span class="zero-value">${fmtInt.format(avgTp)}</span>` : fmtInt.format(avgTp)}</td>
 				<td data-col="tc" class="mono">${v.tc === 0 ? `<span class="zero-value">${fmtInt.format(v.tc)}</span>` : fmtInt.format(v.tc)}</td>
 				<td data-col="tokenOutput" class="mono">${v.tokenOutput === 0 ? `<span class="zero-value">${fmtInt.format(v.tokenOutput)}</span>` : fmtInt.format(v.tokenOutput)}</td>
+				<td data-col="avgTokenOutput" class="mono">${avgTokenOutput === 0 ? `<span class="zero-value">${avgTokenOutput.toFixed(2)}</span>` : avgTokenOutput.toFixed(2)}</td>
 				<td data-col="tr" class="mono">${v.tr === 0 ? `<span class="zero-value">${fmtInt.format(v.tr)}</span>` : fmtInt.format(v.tr)}</td>
+				<td data-col="avgTr" class="mono">${avgTr === 0 ? `<span class="zero-value">${fmtInt.format(avgTr)}</span>` : fmtInt.format(avgTr)}</td>
 				<td data-col="genTime" class="mono">${avgGenTime === 0 ? `<span class="zero-value">${fmtInt.format(avgGenTime)}ms</span>` : `${fmtInt.format(avgGenTime)}ms`}</td>
 				<td data-col="ttft" class="mono">${avgTtft === 0 ? `<span class="zero-value">${fmtInt.format(avgTtft)}ms</span>` : `${fmtInt.format(avgTtft)}ms`}</td>
 			`;
@@ -552,7 +565,7 @@
 			// Restore default: model, req, total always true; cache, file, ttft false; others true
 			const defaults = {
 				model: true, req: true, total: true, byok: true, web: true,
-				cache: false, file: false, tp: true, tc: true, tr: true, genTime: true, ttft: false
+				cache: false, file: false, tp: true, avgTp: true, tc: false, tokenOutput: true, avgTokenOutput: true, tr: true, avgTr: true, genTime: true, ttft: false
 			};
 			for (const k of COL_KEYS) {
 				state.colVisibility[k] = defaults[k];
