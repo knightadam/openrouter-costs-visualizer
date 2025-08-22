@@ -66,20 +66,36 @@
 		<section class="columns">
 			<div class="left-col">
 				<section class="left-panel">
-					<h2>Costs</h2>
+					<div class="table-header">
+						<h2>Costs</h2>
+						<div class="control col-filter model-filter">
+							<button id="colFilterBtn" class="btn" type="button">Columns Filter</button>
+							<div id="colFilterPanel" class="model-panel" hidden>
+								<div class="model-panel-head">
+									<div class="spacer"></div>
+									<button id="colSelectAll" class="btn mini" type="button">All</button>
+									<button id="colSelectNone" class="btn mini" type="button">None</button>
+								</div>
+								<div class="model-list" id="colList"></div>
+							</div>
+						</div>
+					</div>
 					<div class="table-wrap">
 						<table id="costTable">
 							<thead>
 								<tr>
-									<th>Model</th>
-									<th>Requests</th>
-									<th>Total Cost</th>
-									<th>BYOK</th>
-									<th>Web Search</th>
-									<th>Tokens Prompt</th>
-									<th>Tokens Completion</th>
-									<th>Tokens Reasoning</th>
-									<th>Avg Gen Time</th>
+									<th data-col="model">Model</th>
+									<th data-col="req">Requests</th>
+									<th data-col="total">Total Cost</th>
+									<th data-col="byok">BYOK</th>
+									<th data-col="web">Web Search</th>
+									<th data-col="cache">Cache</th>
+									<th data-col="file">File Processing</th>
+									<th data-col="tp">Tokens Prompt</th>
+									<th data-col="tc">Tokens Completion</th>
+									<th data-col="tr">Tokens Reasoning</th>
+									<th data-col="genTime">Avg Gen Time</th>
+									<th data-col="ttft">Avg TTFT</th>
 								</tr>
 							</thead>
 							<tbody>

@@ -15,6 +15,13 @@
 		modelAll: document.getElementById('modelSelectAll'),
 		modelNone: document.getElementById('modelSelectNone'),
 
+		// Column filter UI
+		colBtn: document.getElementById('colFilterBtn'),
+		colPanel: document.getElementById('colFilterPanel'),
+		colList: document.getElementById('colList'),
+		colAll: document.getElementById('colSelectAll'),
+		colNone: document.getElementById('colSelectNone'),
+
 		btnApply: document.getElementById('applyFilters'),
 		btnReset: document.getElementById('resetFilters'),
 		kpiTotal: document.getElementById('kpiTotalCost'),
@@ -37,6 +44,28 @@
 		rows: [], filtered: [], models: new Set(),
 		selectedModels: new Set(),
 		charts: { bar: null, line: null },
+		// Default visibility: hide cache, file, ttft
+		colVisibility: {
+			model: true, req: true, total: true, byok: true, web: true,
+			cache: false, file: false, tp: true, tc: true, tr: true, genTime: true, ttft: false
+		}
+	};
+
+	// Column metadata
+	const COL_KEYS = ['model','req','total','byok','web','cache','file','tp','tc','tr','genTime','ttft'];
+	const COL_LABELS = {
+		model: 'Model',
+		req: 'Requests',
+		total: 'Total Cost',
+		byok: 'BYOK',
+		web: 'Web Search',
+		cache: 'Cache',
+		file: 'File Processing',
+		tp: 'Tokens Prompt',
+		tc: 'Tokens Completion',
+		tr: 'Tokens Reasoning',
+		genTime: 'Avg Gen Time',
+		ttft: 'Avg TTFT'
 	};
 
 	// Parse helpers
@@ -57,6 +86,8 @@
 
 		const genTimeRaw = parts[COL.genTime];
 		const genTime = toNum(genTimeRaw);
+		const ttftRaw = parts[COL.ttft];
+		const ttft = toNum(ttftRaw);
 		
 		// Debug: log first few rows to check data
 		if (state.rows.length < 3) {
@@ -64,6 +95,8 @@
 				parts: parts.length,
 				genTimeRaw,
 				genTime,
+				ttftRaw,
+				ttft,
 				model,
 				created: ts,
 				total: parts[COL.total]
@@ -83,6 +116,7 @@
 			tc: Math.trunc(toNum(parts[COL.tokCompletion])),
 			tr: Math.trunc(toNum(parts[COL.tokReasoning])),
 			genTime: genTime,
+			ttft: ttft,
 		};
 	}
 
@@ -105,7 +139,8 @@
 			tokReasoning: header.indexOf('tokens_reasoning'),
 			model: header.indexOf('model_permaslug'),
 			provider: header.indexOf('provider_name'),
-			genTime: header.indexOf('generation_time_ms')
+			genTime: header.indexOf('generation_time_ms'),
+			ttft: header.indexOf('time_to_first_token_ms')
 		};
 
 		// Debug: log column mapping
@@ -293,6 +328,7 @@
 		}
 		renderKPIs(state.filtered);
 		renderTable(state.filtered);
+		applyColumnVisibility(); // apply after table render
 		renderBarByModel(state.filtered);
 		renderLineOverTime(state.filtered);
 	}
@@ -315,15 +351,18 @@
 		// Aggregate by model
 		const byModel = new Map();
 		for (const r of rows) {
-			const m = byModel.get(r.model) || { total:0, web:0, byok:0, tp:0, tc:0, tr:0, req:0, genTime:0 };
+			const m = byModel.get(r.model) || { total:0, web:0, cache:0, file:0, byok:0, tp:0, tc:0, tr:0, req:0, genTime:0, ttft:0 };
 			m.total += r.total;
 			m.web += r.web;
+			m.cache += r.cache;
+			m.file += r.file;
 			m.byok += r.byok;
 			m.tp += r.tp;
 			m.tc += r.tc;
 			m.tr += r.tr;
 			m.req += 1;
 			m.genTime += r.genTime;
+			m.ttft += r.ttft;
 			byModel.set(r.model, m);
 		}
 
@@ -337,17 +376,21 @@
 		els.tableBody.innerHTML = '';
 		for (const [model, v] of sorted) {
 			const avgGenTime = v.req > 0 ? Math.round(v.genTime / v.req) : 0;
+			const avgTtft = v.req > 0 ? Math.round(v.ttft / v.req) : 0;
 			const tr = document.createElement('tr');
 			tr.innerHTML = `
-				<td class="model-col mono">${escapeHTML(model)}</td>
-				<td class="mono">${v.req === 0 ? `<span class="zero-value">${fmtInt.format(v.req)}</span>` : fmtInt.format(v.req)}</td>
-				<td class="mono">${v.total === 0 ? `<span class="zero-value">${fmtUSD_4dec.format(v.total)}</span>` : fmtUSD_4dec.format(v.total)}</td>
-				<td class="mono">${v.byok === 0 ? `<span class="zero-value">${fmtUSD.format(v.byok)}</span>` : fmtUSD.format(v.byok)}</td>
-				<td class="mono">${v.web === 0 ? `<span class="zero-value">${fmtUSD.format(v.web)}</span>` : fmtUSD.format(v.web)}</td>
-				<td class="mono">${v.tp === 0 ? `<span class="zero-value">${fmtInt.format(v.tp)}</span>` : fmtInt.format(v.tp)}</td>
-				<td class="mono">${v.tc === 0 ? `<span class="zero-value">${fmtInt.format(v.tc)}</span>` : fmtInt.format(v.tc)}</td>
-				<td class="mono">${v.tr === 0 ? `<span class="zero-value">${fmtInt.format(v.tr)}</span>` : fmtInt.format(v.tr)}</td>
-				<td class="mono">${avgGenTime === 0 ? `<span class="zero-value">${fmtInt.format(avgGenTime)}ms</span>` : `${fmtInt.format(avgGenTime)}ms`}</td>
+				<td data-col="model" class="model-col mono">${escapeHTML(model)}</td>
+				<td data-col="req" class="mono">${v.req === 0 ? `<span class="zero-value">${fmtInt.format(v.req)}</span>` : fmtInt.format(v.req)}</td>
+				<td data-col="total" class="mono">${v.total === 0 ? `<span class="zero-value">${fmtUSD_4dec.format(v.total)}</span>` : fmtUSD_4dec.format(v.total)}</td>
+				<td data-col="byok" class="mono">${v.byok === 0 ? `<span class="zero-value">${fmtUSD.format(v.byok)}</span>` : fmtUSD.format(v.byok)}</td>
+				<td data-col="web" class="mono">${v.web === 0 ? `<span class="zero-value">${fmtUSD.format(v.web)}</span>` : fmtUSD.format(v.web)}</td>
+				<td data-col="cache" class="mono">${v.cache === 0 ? `<span class="zero-value">${fmtUSD.format(v.cache)}</span>` : fmtUSD.format(v.cache)}</td>
+				<td data-col="file" class="mono">${v.file === 0 ? `<span class="zero-value">${fmtUSD.format(v.file)}</span>` : fmtUSD.format(v.file)}</td>
+				<td data-col="tp" class="mono">${v.tp === 0 ? `<span class="zero-value">${fmtInt.format(v.tp)}</span>` : fmtInt.format(v.tp)}</td>
+				<td data-col="tc" class="mono">${v.tc === 0 ? `<span class="zero-value">${fmtInt.format(v.tc)}</span>` : fmtInt.format(v.tc)}</td>
+				<td data-col="tr" class="mono">${v.tr === 0 ? `<span class="zero-value">${fmtInt.format(v.tr)}</span>` : fmtInt.format(v.tr)}</td>
+				<td data-col="genTime" class="mono">${avgGenTime === 0 ? `<span class="zero-value">${fmtInt.format(avgGenTime)}ms</span>` : `${fmtInt.format(avgGenTime)}ms`}</td>
+				<td data-col="ttft" class="mono">${avgTtft === 0 ? `<span class="zero-value">${fmtInt.format(avgTtft)}ms</span>` : `${fmtInt.format(avgTtft)}ms`}</td>
 			`;
 			els.tableBody.appendChild(tr);
 		}
@@ -427,6 +470,138 @@
 		});
 	}
 
+	// Apply visibility to headers and cells
+	function applyColumnVisibility() {
+		const table = document.getElementById('costTable');
+		if (!table) return;
+		for (const key of COL_KEYS) {
+			const show = !!state.colVisibility[key];
+			table.querySelectorAll(`[data-col="${key}"]`).forEach(el => {
+				if (show) el.classList.remove('col-hidden');
+				else el.classList.add('col-hidden');
+			});
+		}
+	}
+
+	// Column filter UI
+	function initColumnFilterUI() {
+		if (!els.colList) return;
+		els.colList.innerHTML = '';
+
+		for (const key of COL_KEYS) {
+			const label = COL_LABELS[key] || key;
+			const id = `col_${key}`;
+			const row = document.createElement('label');
+			row.className = 'model-item';
+			// Make model, req, and total columns non-hideable
+			const nonHideable = key === 'model' || key === 'req' || key === 'total';
+			row.innerHTML = `
+				<input type="checkbox" id="${id}" data-key="${key}" ${state.colVisibility[key] ? 'checked' : ''} ${nonHideable ? 'disabled' : ''}/>
+				<span class="mono">${label}</span>
+			`;
+			const cb = row.querySelector('input');
+			cb.addEventListener('change', () => {
+				const k = cb.getAttribute('data-key');
+				if (nonHideable) { cb.checked = true; return; }
+				state.colVisibility[k] = cb.checked;
+				applyColumnVisibility();
+			});
+			els.colList.appendChild(row);
+		}
+
+		// Insert Default button between All and None
+		const defaultBtn = document.createElement('button');
+		defaultBtn.id = 'colSelectDefault';
+		defaultBtn.className = 'btn mini';
+		defaultBtn.type = 'button';
+		defaultBtn.textContent = 'Default';
+		// Place between All and None
+		const panelHead = els.colPanel?.querySelector('.model-panel-head');
+		if (panelHead) {
+			const allBtn = panelHead.querySelector('#colSelectAll');
+			const noneBtn = panelHead.querySelector('#colSelectNone');
+			if (allBtn && noneBtn) {
+				panelHead.insertBefore(defaultBtn, noneBtn);
+			}
+		}
+
+		// All/None/Default
+		els.colAll?.addEventListener('click', () => {
+			for (const k of COL_KEYS) {
+				if (k === 'model' || k === 'req' || k === 'total') continue;
+				state.colVisibility[k] = true;
+			}
+			for (const cb of els.colList.querySelectorAll('input[type="checkbox"]')) {
+				if (cb.disabled) continue;
+				cb.checked = true;
+			}
+			applyColumnVisibility();
+		});
+		defaultBtn.addEventListener('click', () => {
+			// Restore default: model, req, total always true; cache, file, ttft false; others true
+			const defaults = {
+				model: true, req: true, total: true, byok: true, web: true,
+				cache: false, file: false, tp: true, tc: true, tr: true, genTime: true, ttft: false
+			};
+			for (const k of COL_KEYS) {
+				state.colVisibility[k] = defaults[k];
+			}
+			for (const cb of els.colList.querySelectorAll('input[type="checkbox"]')) {
+				const k = cb.getAttribute('data-key');
+				cb.checked = !!defaults[k];
+			}
+			applyColumnVisibility();
+		});
+		els.colNone?.addEventListener('click', () => {
+			for (const k of COL_KEYS) {
+				if (k === 'model' || k === 'req' || k === 'total') continue;
+				state.colVisibility[k] = false;
+			}
+			for (const cb of els.colList.querySelectorAll('input[type="checkbox"]')) {
+				if (cb.disabled) continue;
+				cb.checked = false;
+			}
+			applyColumnVisibility();
+		});
+
+		// Toggle panel
+		els.colBtn?.addEventListener('click', (e) => {
+			e.stopPropagation();
+			const hidden = els.colPanel.hasAttribute('hidden');
+			if (hidden) {
+				els.colPanel.removeAttribute('hidden');
+				positionColPanel();
+			} else {
+				els.colPanel.setAttribute('hidden', '');
+			}
+		});
+		document.addEventListener('click', (e) => {
+			if (!els.colPanel) return;
+			if (els.colPanel.hasAttribute('hidden')) return;
+			if (els.colPanel.contains(e.target) || els.colBtn.contains(e.target)) return;
+			els.colPanel.setAttribute('hidden', '');
+		});
+		window.addEventListener('resize', () => {
+			if (!els.colPanel?.hasAttribute('hidden')) positionColPanel();
+		});
+
+		// Ensure defaults (hide cache, file, ttft) applied to current DOM
+		applyColumnVisibility();
+	}
+
+	function positionColPanel() {
+		if (!els.colPanel || !els.colBtn) return;
+		els.colPanel.classList.remove('align-right');
+		els.colPanel.style.maxWidth = Math.min(360, window.innerWidth - 16) + 'px';
+		const btnRect = els.colBtn.getBoundingClientRect();
+		const panelRect = els.colPanel.getBoundingClientRect();
+		const margin = 8;
+		const projectedRight = btnRect.left + panelRect.width;
+		if (projectedRight > window.innerWidth - margin) {
+			els.colPanel.classList.add('align-right');
+		}
+	}
+
 	// Utils
 	function escapeHTML(s) {
 		return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -502,4 +677,9 @@
 
 	// Initial empty state
 	clearUI();
+
+	// Initialize column filter UI once
+	initColumnFilterUI();
+	// Ensure header reflects default visibility on load
+	applyColumnVisibility();
 })();
