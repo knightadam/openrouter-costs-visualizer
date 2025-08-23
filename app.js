@@ -394,6 +394,45 @@
 			console.log('Debug first model aggregation:', sorted[0][1]);
 		}
 
+		// Calculate totals for footer
+		const totals = {
+			models: sorted.length,
+			req: 0,
+			total: 0,
+			byok: 0,
+			web: 0,
+			cache: 0,
+			file: 0,
+			tp: 0,
+			tc: 0,
+			tokenOutput: 0,
+			tr: 0,
+			genTime: 0,
+			ttft: 0
+		};
+
+		for (const [, v] of sorted) {
+			totals.req += v.req;
+			totals.total += v.total;
+			totals.byok += v.byok;
+			totals.web += v.web;
+			totals.cache += v.cache;
+			totals.file += v.file;
+			totals.tp += v.tp;
+			totals.tc += v.tc;
+			totals.tokenOutput += v.tokenOutput;
+			totals.tr += v.tr;
+			totals.genTime += v.genTime;
+			totals.ttft += v.ttft;
+		}
+
+		// Calculate averages
+		const avgTp = totals.req > 0 ? Math.round(totals.tp / totals.req) : 0;
+		const avgTokenOutput = totals.req > 0 ? (totals.tokenOutput / totals.req) : 0;
+		const avgTr = totals.req > 0 ? Math.round(totals.tr / totals.req) : 0;
+		const avgGenTime = totals.req > 0 ? Math.round(totals.genTime / totals.req) : 0;
+		const avgTtft = totals.req > 0 ? Math.round(totals.ttft / totals.req) : 0;
+
 		els.tableBody.innerHTML = '';
 		for (const [model, v] of sorted) {
 			const avgGenTime = v.req > 0 ? Math.round(v.genTime / v.req) : 0;
@@ -422,6 +461,31 @@
 				<td data-col="ttft" class="mono">${avgTtft === 0 ? `<span class="zero-value">${fmtInt.format(avgTtft)}ms</span>` : `${fmtInt.format(avgTtft)}ms`}</td>
 			`;
 			els.tableBody.appendChild(tr);
+		}
+
+		// Add totals row to footer
+		const tableFooter = document.querySelector('#costTable tfoot');
+		if (tableFooter) {
+			tableFooter.innerHTML = `
+				<tr>
+					<td data-col="model" class="model-col mono">TOTAL (${totals.models} models)</td>
+					<td data-col="req" class="mono">${totals.req === 0 ? `<span class="zero-value">${fmtInt.format(totals.req)}</span>` : fmtInt.format(totals.req)}</td>
+					<td data-col="total" class="mono">${totals.total === 0 ? `<span class="zero-value">${fmtUSD_4dec.format(totals.total)}</span>` : fmtUSD_4dec.format(totals.total)}</td>
+					<td data-col="byok" class="mono">${totals.byok === 0 ? `<span class="zero-value">${fmtUSD.format(totals.byok)}</span>` : fmtUSD.format(totals.byok)}</td>
+					<td data-col="web" class="mono">${totals.web === 0 ? `<span class="zero-value">${fmtUSD.format(totals.web)}</span>` : fmtUSD.format(totals.web)}</td>
+					<td data-col="cache" class="mono">${totals.cache === 0 ? `<span class="zero-value">${fmtUSD.format(totals.cache)}</span>` : fmtUSD.format(totals.cache)}</td>
+					<td data-col="file" class="mono">${totals.file === 0 ? `<span class="zero-value">${fmtUSD.format(totals.file)}</span>` : fmtUSD.format(totals.file)}</td>
+					<td data-col="tp" class="mono">${totals.tp === 0 ? `<span class="zero-value">${fmtInt.format(totals.tp)}</span>` : fmtInt.format(totals.tp)}</td>
+					<td data-col="avgTp" class="mono">${avgTp === 0 ? `<span class="zero-value">${fmtInt.format(avgTp)}</span>` : fmtInt.format(avgTp)}</td>
+					<td data-col="tc" class="mono">${totals.tc === 0 ? `<span class="zero-value">${fmtInt.format(totals.tc)}</span>` : fmtInt.format(totals.tc)}</td>
+					<td data-col="tokenOutput" class="mono">${totals.tokenOutput === 0 ? `<span class="zero-value">${fmtInt.format(totals.tokenOutput)}</span>` : fmtInt.format(totals.tokenOutput)}</td>
+					<td data-col="avgTokenOutput" class="mono">${avgTokenOutput === 0 ? `<span class="zero-value">${avgTokenOutput.toFixed(2)}</span>` : avgTokenOutput.toFixed(2)}</td>
+					<td data-col="tr" class="mono">${totals.tr === 0 ? `<span class="zero-value">${fmtInt.format(totals.tr)}</span>` : fmtInt.format(totals.tr)}</td>
+					<td data-col="avgTr" class="mono">${avgTr === 0 ? `<span class="zero-value">${fmtInt.format(avgTr)}</span>` : fmtInt.format(avgTr)}</td>
+					<td data-col="genTime" class="mono">${avgGenTime === 0 ? `<span class="zero-value">${fmtInt.format(avgGenTime)}ms</span>` : `${fmtInt.format(avgGenTime)}ms`}</td>
+					<td data-col="ttft" class="mono">${avgTtft === 0 ? `<span class="zero-value">${fmtInt.format(avgTtft)}ms</span>` : `${fmtInt.format(avgTtft)}ms`}</td>
+				</tr>
+			`;
 		}
 	}
 

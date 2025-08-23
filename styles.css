@@ -277,6 +277,15 @@ thead th {
 	border-bottom: 1px solid var(--border); 
 	z-index: 1;
 }
+/* Table footer for totals */
+tfoot td {
+	position: sticky;
+	bottom: 0;
+	background: #10151b;
+	border-top: 2px solid var(--border);
+	font-weight: 600;
+	z-index: 1;
+}
 th, td {
 	padding: 10px; 
 	font-size: 16px; /* increased from 14px */
