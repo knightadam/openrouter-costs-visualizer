@@ -87,7 +87,7 @@
 									<th data-col="model">Model</th>
 									<th data-col="req">Requests</th>
 									<th data-col="total">OpenRouter Cost</th>
-									<th data-col="byok">BYOK</th>
+									<th data-col="byok" data-tooltip="Bring Your Own Key costs are charged directly by the model provider when you use your own API key.">BYOK</th>
 									<th data-col="web">Web Search</th>
 									<th data-col="cache">Cache</th>
 									<th data-col="file">File Processing</th>
@@ -97,9 +97,9 @@
 									<th data-col="avgTokenOutput">Avg Token Output</th>
 									<th data-col="tr">Tokens Reasoning</th>
 									<th data-col="avgTr">Avg Tokens Reasoning</th>
-									<th data-col="tc">Tokens Completion</th>
-									<th data-col="genTime">Avg Gen Time</th>
-									<th data-col="ttft">Avg TTFT</th>
+									<th data-col="tc" data-tooltip="Completion Tokens comprehend both Reasoning Tokens and Output Tokens.">Tokens Completion</th>
+									<th data-col="genTime" data-tooltip="Average generation time per request (ms).">Avg Gen Time</th>
+									<th data-col="ttft" data-tooltip="Average time to first token per request (ms).">Avg TTFT</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -166,5 +166,8 @@
 			</div>
 		</section>
 	</main>
+
+	<!-- Tooltip container -->
+	<div id="tableTooltip" class="table-tooltip" style="display:none;"></div>
 </body>
 </html>

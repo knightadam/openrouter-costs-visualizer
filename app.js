@@ -798,4 +798,43 @@
 	initColumnFilterUI();
 	// Ensure header reflects saved visibility on load
 	applyColumnVisibility();
+
+	// Tooltip for table headers
+	(function setupTableHeaderTooltip() {
+		const tooltip = document.getElementById('tableTooltip');
+		const ths = document.querySelectorAll('#costTable th[data-tooltip]');
+		if (!tooltip || !ths.length) return;
+
+		ths.forEach(th => {
+			th.addEventListener('mouseenter', e => {
+				const text = th.getAttribute('data-tooltip');
+				if (!text) return;
+				tooltip.textContent = text;
+				tooltip.style.display = 'block';
+				const rect = th.getBoundingClientRect();
+				// Position below header cell, adjust for viewport
+				let top = rect.bottom + 6;
+				let left = rect.left + Math.min(rect.width/2, 120);
+				// Clamp to viewport
+				const maxRight = window.innerWidth - 12;
+				const ttWidth = tooltip.offsetWidth || 260;
+				if (left + ttWidth > maxRight) left = maxRight - ttWidth;
+				tooltip.style.top = `${top}px`;
+				tooltip.style.left = `${left}px`;
+			});
+			th.addEventListener('mouseleave', () => {
+				tooltip.style.display = 'none';
+			});
+			th.addEventListener('mousemove', e => {
+				// Move tooltip with mouse if needed
+				const ttWidth = tooltip.offsetWidth || 260;
+				let left = e.clientX + 12;
+				let top = e.clientY + 14;
+				const maxRight = window.innerWidth - 12;
+				if (left + ttWidth > maxRight) left = maxRight - ttWidth;
+				tooltip.style.top = `${top}px`;
+				tooltip.style.left = `${left}px`;
+			});
+		});
+	})();
 })();
