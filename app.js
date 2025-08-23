@@ -452,11 +452,11 @@
 				<td data-col="file" class="mono">${v.file === 0 ? `<span class="zero-value">${fmtUSD.format(v.file)}</span>` : fmtUSD.format(v.file)}</td>
 				<td data-col="tp" class="mono">${v.tp === 0 ? `<span class="zero-value">${fmtInt.format(v.tp)}</span>` : fmtInt.format(v.tp)}</td>
 				<td data-col="avgTp" class="mono">${avgTp === 0 ? `<span class="zero-value">${fmtInt.format(avgTp)}</span>` : fmtInt.format(avgTp)}</td>
-				<td data-col="tc" class="mono">${v.tc === 0 ? `<span class="zero-value">${fmtInt.format(v.tc)}</span>` : fmtInt.format(v.tc)}</td>
 				<td data-col="tokenOutput" class="mono">${v.tokenOutput === 0 ? `<span class="zero-value">${fmtInt.format(v.tokenOutput)}</span>` : fmtInt.format(v.tokenOutput)}</td>
 				<td data-col="avgTokenOutput" class="mono">${avgTokenOutput === 0 ? `<span class="zero-value">${avgTokenOutput.toFixed(2)}</span>` : avgTokenOutput.toFixed(2)}</td>
 				<td data-col="tr" class="mono">${v.tr === 0 ? `<span class="zero-value">${fmtInt.format(v.tr)}</span>` : fmtInt.format(v.tr)}</td>
 				<td data-col="avgTr" class="mono">${avgTr === 0 ? `<span class="zero-value">${fmtInt.format(avgTr)}</span>` : fmtInt.format(avgTr)}</td>
+				<td data-col="tc" class="mono">${v.tc === 0 ? `<span class="zero-value">${fmtInt.format(v.tc)}</span>` : fmtInt.format(v.tc)}</td>
 				<td data-col="genTime" class="mono">${avgGenTime === 0 ? `<span class="zero-value">${fmtInt.format(avgGenTime)}ms</span>` : `${fmtInt.format(avgGenTime)}ms`}</td>
 				<td data-col="ttft" class="mono">${avgTtft === 0 ? `<span class="zero-value">${fmtInt.format(avgTtft)}ms</span>` : `${fmtInt.format(avgTtft)}ms`}</td>
 			`;
@@ -477,11 +477,11 @@
 					<td data-col="file" class="mono">${totals.file === 0 ? `<span class="zero-value">${fmtUSD.format(totals.file)}</span>` : fmtUSD.format(totals.file)}</td>
 					<td data-col="tp" class="mono">${totals.tp === 0 ? `<span class="zero-value">${fmtInt.format(totals.tp)}</span>` : fmtInt.format(totals.tp)}</td>
 					<td data-col="avgTp" class="mono">${avgTp === 0 ? `<span class="zero-value">${fmtInt.format(avgTp)}</span>` : fmtInt.format(avgTp)}</td>
-					<td data-col="tc" class="mono">${totals.tc === 0 ? `<span class="zero-value">${fmtInt.format(totals.tc)}</span>` : fmtInt.format(totals.tc)}</td>
 					<td data-col="tokenOutput" class="mono">${totals.tokenOutput === 0 ? `<span class="zero-value">${fmtInt.format(totals.tokenOutput)}</span>` : fmtInt.format(totals.tokenOutput)}</td>
 					<td data-col="avgTokenOutput" class="mono">${avgTokenOutput === 0 ? `<span class="zero-value">${avgTokenOutput.toFixed(2)}</span>` : avgTokenOutput.toFixed(2)}</td>
 					<td data-col="tr" class="mono">${totals.tr === 0 ? `<span class="zero-value">${fmtInt.format(totals.tr)}</span>` : fmtInt.format(totals.tr)}</td>
 					<td data-col="avgTr" class="mono">${avgTr === 0 ? `<span class="zero-value">${fmtInt.format(avgTr)}</span>` : fmtInt.format(avgTr)}</td>
+					<td data-col="tc" class="mono">${totals.tc === 0 ? `<span class="zero-value">${fmtInt.format(totals.tc)}</span>` : fmtInt.format(totals.tc)}</td>
 					<td data-col="genTime" class="mono">${avgGenTime === 0 ? `<span class="zero-value">${fmtInt.format(avgGenTime)}ms</span>` : `${fmtInt.format(avgGenTime)}ms`}</td>
 					<td data-col="ttft" class="mono">${avgTtft === 0 ? `<span class="zero-value">${fmtInt.format(avgTtft)}ms</span>` : `${fmtInt.format(avgTtft)}ms`}</td>
 				</tr>
