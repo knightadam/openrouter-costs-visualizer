@@ -176,8 +176,9 @@
 		
 		state.rows = rows.sort((a, b) => a.date - b.date);
 		state.models = models;
-		populateModelFilter(models);
-		// Clear filters when new file is loaded
+		populateModelFilter(models); // listeners and UI reset handled inside
+
+		// --- Reset filters when new file is loaded ---
 		els.from.value = '';
 		els.to.value = '';
 		state.selectedModels.clear();
@@ -209,6 +210,21 @@
 			});
 			els.modelList.appendChild(wrap);
 		}
+
+		// --- Fix: Remove previous listeners and set up only once ---
+		// Remove previous listeners by replacing the element (for search, all, none)
+		const newSearch = els.modelSearch.cloneNode(true);
+		els.modelSearch.parentNode.replaceChild(newSearch, els.modelSearch);
+		els.modelSearch = newSearch;
+
+		const newAll = els.modelAll.cloneNode(true);
+		els.modelAll.parentNode.replaceChild(newAll, els.modelAll);
+		els.modelAll = newAll;
+
+		const newNone = els.modelNone.cloneNode(true);
+		els.modelNone.parentNode.replaceChild(newNone, els.modelNone);
+		els.modelNone = newNone;
+
 		// search
 		els.modelSearch?.addEventListener('input', () => {
 			const q = els.modelSearch.value.trim().toLowerCase();
@@ -228,27 +244,37 @@
 			for (const cb of els.modelList.querySelectorAll('input[type="checkbox"]')) cb.checked = false;
 			updateModelButtonCaption(); applyFilters();
 		});
-		// dropdown toggle
-		els.modelBtn?.addEventListener('click', (e) => {
-			e.stopPropagation();
-			const hidden = els.modelPanel.hasAttribute('hidden');
-			if (hidden) {
-				els.modelPanel.removeAttribute('hidden');
-				positionModelPanel();
-			} else {
+
+		// --- Fix: Setup dropdown toggle only once ---
+		if (!populateModelFilter._dropdownSetup) {
+			els.modelBtn?.addEventListener('click', (e) => {
+				e.stopPropagation();
+				const hidden = els.modelPanel.hasAttribute('hidden');
+				if (hidden) {
+					els.modelPanel.removeAttribute('hidden');
+					positionModelPanel();
+				} else {
+					els.modelPanel.setAttribute('hidden', '');
+				}
+			});
+			document.addEventListener('click', (e) => {
+				if (!els.modelPanel) return;
+				if (els.modelPanel.hasAttribute('hidden')) return;
+				if (els.modelPanel.contains(e.target) || els.modelBtn.contains(e.target)) return;
 				els.modelPanel.setAttribute('hidden', '');
-			}
-		});
-		document.addEventListener('click', (e) => {
-			if (!els.modelPanel) return;
-			if (els.modelPanel.hasAttribute('hidden')) return;
-			if (els.modelPanel.contains(e.target) || els.modelBtn.contains(e.target)) return;
-			els.modelPanel.setAttribute('hidden', '');
-		});
-		// keep panel in view on resize
-		window.addEventListener('resize', () => {
-			if (!els.modelPanel?.hasAttribute('hidden')) positionModelPanel();
-		});
+			});
+			window.addEventListener('resize', () => {
+				if (!els.modelPanel?.hasAttribute('hidden')) positionModelPanel();
+			});
+			populateModelFilter._dropdownSetup = true;
+		}
+
+		// --- Reset filter UI to default when new CSV is loaded ---
+		// Uncheck all checkboxes and clear search
+		for (const cb of els.modelList.querySelectorAll('input[type="checkbox"]')) cb.checked = false;
+		if (els.modelSearch) els.modelSearch.value = '';
+		state.selectedModels.clear();
+		updateModelButtonCaption();
 	}
 
 	function positionModelPanel() {
