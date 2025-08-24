@@ -54,7 +54,8 @@
 		selectedModels: new Set(),
 		charts: { bar: null, line: null },
 		// Load column visibility from localStorage or use defaults
-		colVisibility: loadColumnVisibility()
+		colVisibility: loadColumnVisibility(),
+		sort: { col: 'total', dir: 'default' }, // default: 'default' means model name asc
 	};
 
 	// Column metadata
@@ -387,11 +388,22 @@
 			byModel.set(r.model, m);
 		}
 
-		const sorted = [...byModel.entries()].sort((a, b) => b[1].total - a[1].total);
-
-		// Debug: log aggregated data for first model
-		if (sorted.length > 0) {
-			console.log('Debug first model aggregation:', sorted[0][1]);
+		const sorted = [...byModel.entries()];
+		// Sort by selected column and direction
+		const sortCol = state.sort.col;
+		const sortDir = state.sort.dir;
+		if (sortDir === 'default') {
+			// Default: sort by OpenRouter cost descending
+			sorted.sort((a, b) => b[1].total - a[1].total);
+		} else {
+			sorted.sort((a, b) => {
+				const va = a[1][sortCol] ?? 0;
+				const vb = b[1][sortCol] ?? 0;
+				if (typeof va === 'string' && typeof vb === 'string') {
+					return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+				}
+				return sortDir === 'asc' ? va - vb : vb - va;
+			});
 		}
 
 		// Calculate totals for footer
@@ -487,6 +499,9 @@
 				</tr>
 			`;
 		}
+
+		// Update sort icons after rendering
+		updateSortIcons();
 	}
 
 	function renderBarByModel(rows) {
@@ -718,6 +733,59 @@
 		}
 	}
 
+	// Sorting UI
+	function setupTableSorting() {
+		const ths = document.querySelectorAll('#costTable th.sortable-header');
+		ths.forEach(th => {
+			const col = th.getAttribute('data-col');
+			const header = th; // th itself is now the clickable header
+			if (!header || !col) return;
+			header.addEventListener('click', (e) => {
+				e.stopPropagation();
+				if (state.sort.col === col) {
+					// Cycle: default → desc → asc → default
+					if (state.sort.dir === 'default') {
+						state.sort.dir = 'desc';
+					} else if (state.sort.dir === 'desc') {
+						state.sort.dir = 'asc';
+					} else {
+						state.sort.dir = 'default';
+					}
+				} else {
+					state.sort.col = col;
+					state.sort.dir = 'desc';
+				}
+				renderAll();
+			});
+		});
+	}
+
+	function updateSortIcons() {
+		const SVG_UP = `<svg width="16" height="16" viewBox="0 0 16 16" style="display:inline-block;vertical-align:middle;" xmlns="http://www.w3.org/2000/svg"><polyline points="4,10 8,6 12,10" fill="none" stroke="#bfc9d6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+		const SVG_DOWN = `<svg width="16" height="16" viewBox="0 0 16 16" style="display:inline-block;vertical-align:middle;" xmlns="http://www.w3.org/2000/svg"><polyline points="4,6 8,10 12,6" fill="none" stroke="#bfc9d6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+		const ths = document.querySelectorAll('#costTable th');
+		ths.forEach(th => {
+			const col = th.getAttribute('data-col');
+			const icon = th.querySelector('.sort-icon');
+			th.classList.remove('sorted-asc', 'sorted-desc', 'sorted-default');
+			if (!icon) return;
+			if (col === state.sort.col) {
+				if (state.sort.dir === 'asc') {
+					th.classList.add('sorted-asc');
+					icon.innerHTML = SVG_UP;
+				} else if (state.sort.dir === 'desc') {
+					th.classList.add('sorted-desc');
+					icon.innerHTML = SVG_DOWN;
+				} else {
+					th.classList.add('sorted-default');
+					icon.innerHTML = '';
+				}
+			} else {
+				icon.innerHTML = '';
+			}
+		});
+	}
+
 	// Utils
 	function escapeHTML(s) {
 		return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -837,4 +905,7 @@
 			});
 		});
 	})();
+
+	// Setup sorting after DOM is ready
+	setupTableSorting();
 })();

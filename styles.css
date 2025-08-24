@@ -447,6 +447,12 @@ tbody tr:hover { background: rgba(255,255,255,0.03); }
 	transition: opacity 0.08s;
 }
 
+/* Prevent text selection on sortable table headers */
+.sortable-header {
+	user-select: none;
+	cursor: pointer;
+}
+
 /* Responsive */
 @media (max-width: 1100px) {
 	/* Switch to scrollable layout for smaller screens */
