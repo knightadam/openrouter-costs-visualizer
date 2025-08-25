@@ -1,8 +1,14 @@
 /* Minimal CSV -> dashboard */
 (() => {
+	// Update element references in els object
 	const els = {
 		file: document.getElementById('csvFile'),
 		dropZone: document.getElementById('dropZone'),
+		filesList: document.getElementById('filesList'),
+		filesContainer: document.getElementById('filesContainer'),
+		filesCount: document.querySelector('.files-count'),
+		uniqueRecords: document.getElementById('uniqueRecords'),
+		clearAllFiles: document.getElementById('clearAllFiles'),
 		from: document.getElementById('fromDate'),
 		to: document.getElementById('toDate'),
 		// old multi-select may be absent; keep optional
@@ -50,7 +56,10 @@
 	};
 
 	const state = {
-		rows: [], filtered: [], models: new Set(),
+		files: [],             // Array of { id, name, data (raw parsed rows) }
+		rows: [],              // Merged and deduplicated rows
+		filtered: [],          // Filtered rows for display
+		models: new Set(),     // All unique models across all files
 		selectedModels: new Set(),
 		charts: { bar: null, line: null },
 		// Load column visibility from localStorage or use defaults
@@ -103,20 +112,6 @@
 		const ttftRaw = parts[COL.ttft];
 		const ttft = toNum(ttftRaw);
 		
-		// Debug: log first few rows to check data
-		if (state.rows.length < 3) {
-			console.log('Debug row:', {
-				parts: parts.length,
-				genTimeRaw,
-				genTime,
-				ttftRaw,
-				ttft,
-				model,
-				created: ts,
-				total: parts[COL.total]
-			});
-		}
-
 		return {
 			id: parts[COL.id],
 			date: d,
@@ -134,9 +129,9 @@
 		};
 	}
 
-	function parseCSV(csvText) {
+	function parseCSV(csvText, filename) {
 		const lines = csvText.trim().split('\n');
-		if (lines.length < 2) return;
+		if (lines.length < 2) return null;
 
 		// Parse header to get column mapping
 		const header = lines[0].split(',').map(col => col.trim());
@@ -157,8 +152,11 @@
 			ttft: header.indexOf('time_to_first_token_ms')
 		};
 
-		// Debug: log column mapping
-		console.log('Column mapping:', COL);
+		// Validate required columns exist
+		if (COL.id === -1 || COL.created === -1 || COL.model === -1) {
+			alert('CSV is missing required columns: generation_id, created_at, or model_permaslug');
+			return null;
+		}
 
 		const rows = [];
 		const models = new Set();
@@ -168,23 +166,167 @@
 			if (!line) continue;
 			
 			const r = parseLine(line);
-			// skip rows with missing/invalid date or model
-			if (!r || !r.date || !r.model) continue;
+			// skip rows with missing/invalid date, id, or model
+			if (!r || !r.id || !r.date || !r.model) continue;
 			rows.push(r);
 			models.add(r.model);
 		}
+
+		// Return the parsed data
+		return {
+			rows: rows.sort((a, b) => a.date - b.date),
+			models: models
+		};
+	}
+
+	function addFile(file) {
+		// Generate unique ID for this file
+		const fileId = `file-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 		
-		state.rows = rows.sort((a, b) => a.date - b.date);
-		state.models = models;
-		populateModelFilter(models); // listeners and UI reset handled inside
+		const reader = new FileReader();
+		reader.onload = () => {
+			const parsedData = parseCSV(String(reader.result || ''), file.name);
+			if (!parsedData) return; // Invalid file
 
-		// --- Reset filters when new file is loaded ---
-		els.from.value = '';
-		els.to.value = '';
-		state.selectedModels.clear();
-		if (els.modelFilter?.options) for (const opt of els.modelFilter.options) opt.selected = false; // legacy select if present
-		updateModelButtonCaption();
+			// Add to state.files
+			state.files.push({
+				id: fileId,
+				name: file.name,
+				data: parsedData.rows
+			});
 
+			// Update UI
+			updateFilesListUI();
+			
+			// Merge data and update visualization
+			mergeAndDeduplicateData();
+		};
+		reader.readAsText(file);
+	}
+
+	function removeFile(fileId) {
+		// Remove file from state
+		state.files = state.files.filter(file => file.id !== fileId);
+		
+		// Update UI
+		updateFilesListUI();
+		
+		// If no files left, reset drop zone
+		if (state.files.length === 0) {
+			updateDropZoneState(0);
+		}
+
+		// Re-merge data and update visualization
+		mergeAndDeduplicateData();
+	}
+
+	function clearAllFiles() {
+		// Clear all files
+		state.files = [];
+		
+		// Update UI
+		updateFilesListUI();
+
+		// Reset drop zone to neutral state
+		updateDropZoneState(0);
+
+		// Use the same path as when removing the last file
+		mergeAndDeduplicateData();
+	}
+
+	function updateFilesListUI() {
+		// Update files count
+		els.filesCount.textContent = `${state.files.length} file${state.files.length !== 1 ? 's' : ''}`;
+		
+		// Show or hide files list
+		if (state.files.length > 0) {
+			els.filesList.removeAttribute('hidden');
+		} else {
+			els.filesList.setAttribute('hidden', '');
+			els.filesContainer.setAttribute('hidden', ''); // Hide container too
+			return;
+		}
+		
+		// Clear container
+		els.filesContainer.innerHTML = '';
+		
+		// Add file items
+		for (const file of state.files) {
+			const fileItem = document.createElement('div');
+			fileItem.className = 'file-item';
+			fileItem.innerHTML = `
+				<span class="file-name" title="${escapeHTML(file.name)}">${escapeHTML(file.name)}</span>
+				<button class="file-remove" data-file-id="${file.id}" title="Remove file">&times;</button>
+			`;
+			els.filesContainer.appendChild(fileItem);
+			
+			// Add event listener for remove button
+			const removeBtn = fileItem.querySelector('.file-remove');
+			removeBtn.addEventListener('click', () => {
+				removeFile(file.id);
+			});
+		}
+	}
+
+	function mergeAndDeduplicateData() {
+		if (state.files.length === 0) {
+			// Reset all data structures
+			state.rows = [];
+			state.models = new Set();
+			state.selectedModels.clear();
+			state.filtered = [];
+			
+			// Reset unique records counter
+			if (els.uniqueRecords) {
+				els.uniqueRecords.textContent = "0 unique records";
+			}
+			
+			// Clear the model list in the dropdown UI
+			if (els.modelList) {
+				els.modelList.innerHTML = '';
+			}
+			
+			// Hide model filter panel if visible
+			if (els.modelPanel && !els.modelPanel.hasAttribute('hidden')) {
+				els.modelPanel.setAttribute('hidden', '');
+			}
+			
+			// Reset model button caption
+			updateModelButtonCaption();
+			
+			// Clear UI elements
+			clearUI();
+			return;
+		}
+		
+		// Use Map to deduplicate by generation_id
+		const uniqueRows = new Map();
+		const allModels = new Set();
+		
+		// Process all files
+		for (const file of state.files) {
+			for (const row of file.data) {
+				// Only add if this ID is not already in the map
+				if (row.id && !uniqueRows.has(row.id)) {
+					uniqueRows.set(row.id, row);
+					if (row.model) allModels.add(row.model);
+				}
+			}
+		}
+		
+		// Convert Map to array and sort by date
+		state.rows = Array.from(uniqueRows.values()).sort((a, b) => a.date - b.date);
+		state.models = allModels;
+		
+		// Update unique records count
+		if (els.uniqueRecords) {
+			els.uniqueRecords.textContent = `${state.rows.length} unique records`;
+		}
+		
+		// Update model filter UI
+		populateModelFilter(allModels);
+		
+		// Apply filters and update visualization
 		applyFilters();
 	}
 
@@ -235,26 +377,34 @@
 		});
 		// select all/none
 		els.modelAll?.addEventListener('click', () => {
-			state.selectedModels = new Set(arr);
-			for (const cb of els.modelList.querySelectorAll('input[type="checkbox"]')) cb.checked = true;
-			updateModelButtonCaption(); applyFilters();
+			// Only take action if there are models to select
+			if (state.models.size > 0) {
+				state.selectedModels = new Set([...state.models]);
+				for (const cb of els.modelList.querySelectorAll('input[type="checkbox"]')) cb.checked = true;
+				updateModelButtonCaption(); 
+				applyFilters();
+			}
 		});
 		els.modelNone?.addEventListener('click', () => {
 			state.selectedModels.clear();
 			for (const cb of els.modelList.querySelectorAll('input[type="checkbox"]')) cb.checked = false;
-			updateModelButtonCaption(); applyFilters();
+			updateModelButtonCaption(); 
+			applyFilters();
 		});
 
 		// --- Fix: Setup dropdown toggle only once ---
 		if (!populateModelFilter._dropdownSetup) {
 			els.modelBtn?.addEventListener('click', (e) => {
 				e.stopPropagation();
-				const hidden = els.modelPanel.hasAttribute('hidden');
-				if (hidden) {
-					els.modelPanel.removeAttribute('hidden');
-					positionModelPanel();
-				} else {
-					els.modelPanel.setAttribute('hidden', '');
+				// Only allow opening the panel when there are models to display
+				if (state.models.size > 0) {
+					const hidden = els.modelPanel.hasAttribute('hidden');
+					if (hidden) {
+						els.modelPanel.removeAttribute('hidden');
+						positionModelPanel();
+					} else {
+						els.modelPanel.setAttribute('hidden', '');
+					}
 				}
 			});
 			document.addEventListener('click', (e) => {
@@ -269,11 +419,22 @@
 			populateModelFilter._dropdownSetup = true;
 		}
 
-		// --- Reset filter UI to default when new CSV is loaded ---
-		// Uncheck all checkboxes and clear search
-		for (const cb of els.modelList.querySelectorAll('input[type="checkbox"]')) cb.checked = false;
+		// Keep selected models that still exist in the new dataset
+		const existingSelected = new Set();
+		for (const selected of state.selectedModels) {
+			if (models.has(selected)) {
+				existingSelected.add(selected);
+			}
+		}
+		state.selectedModels = existingSelected;
+
+		// Update checkboxes to match state
+		for (const cb of els.modelList.querySelectorAll('input[type="checkbox"]')) {
+			const modelName = cb.value;
+			cb.checked = state.selectedModels.has(modelName);
+		}
+
 		if (els.modelSearch) els.modelSearch.value = '';
-		state.selectedModels.clear();
 		updateModelButtonCaption();
 	}
 
@@ -352,12 +513,23 @@
 
 	// Rendering
 	function clearUI() {
+		// Reset KPIs
 		els.kpiReq.textContent = '-';
 		els.kpiOpenRouterCost.textContent = '-';
 		els.kpiTotalCost.textContent = '-';
 		els.kpiAvg.textContent = '-';
 		els.kpiWin.textContent = '-';
+		
+		// Clear table body
 		els.tableBody.innerHTML = '';
+		
+		// Clear table footer (totals row)
+		const tableFooter = document.querySelector('#costTable tfoot');
+		if (tableFooter) {
+			tableFooter.innerHTML = '';
+		}
+		
+		// Destroy charts
 		if (state.charts.bar) { state.charts.bar.destroy(); state.charts.bar = null; }
 		if (state.charts.line) { state.charts.line.destroy(); state.charts.line = null; }
 	}
@@ -818,38 +990,38 @@
 	}
 
 	// File handling functions
-	function handleFile(file) {
-		if (!file || !file.name.toLowerCase().endsWith('.csv')) {
-			alert('Please select a CSV file.');
-			return;
-		}
+	function handleFiles(files) {
+		if (!files || files.length === 0) return;
 		
-		const reader = new FileReader();
-		reader.onload = () => {
-			parseCSV(String(reader.result || ''));
-			updateDropZoneState(file.name);
-		};
-		reader.readAsText(file);
+		Array.from(files).forEach(file => {
+			if (file.name.toLowerCase().endsWith('.csv')) {
+				addFile(file);
+			}
+		});
+		
+		updateDropZoneState(files.length);
 	}
 
-	function updateDropZoneState(filename) {
+	function updateDropZoneState(count) {
 		if (!els.dropZone) return;
 		
-		if (filename) {
+		if (count > 0) {
 			els.dropZone.classList.add('has-file');
 			const textEl = els.dropZone.querySelector('.drop-zone-text div:first-child');
-			if (textEl) textEl.textContent = filename;
+			if (textEl) textEl.textContent = count === 1 ? 'Add more files' : `${count} files added`;
 		} else {
 			els.dropZone.classList.remove('has-file');
 			const textEl = els.dropZone.querySelector('.drop-zone-text div:first-child');
-			if (textEl) textEl.textContent = 'Drop CSV file here';
+			if (textEl) textEl.textContent = 'Drop CSV files here';
 		}
 	}
 
 	// Events
 	els.file?.addEventListener('change', (e) => {
-		const f = e.target.files?.[0];
-		if (f) handleFile(f);
+		const files = e.target.files;
+		if (files && files.length > 0) {
+			handleFiles(files);
+		}
 	});
 
 	// Drop zone events
@@ -875,15 +1047,38 @@
 		
 		const files = e.dataTransfer?.files;
 		if (files && files.length > 0) {
-			handleFile(files[0]);
+			handleFiles(files);
 		}
 	});
+
+	// Clear all files button
+	els.clearAllFiles?.addEventListener('click', clearAllFiles);
 
 	els.btnApply?.addEventListener('click', applyFilters);
 	els.btnReset?.addEventListener('click', resetFilters);
 
 	// Remove legacy auto-apply on select change (keep if select exists)
 	els.modelFilter?.addEventListener('change', applyFilters);
+
+	// Add click handler to files count to toggle files panel
+	els.filesCount?.addEventListener('click', (e) => {
+		e.stopPropagation();
+		const hidden = els.filesContainer.hasAttribute('hidden');
+		if (hidden && state.files.length > 0) {
+			els.filesContainer.removeAttribute('hidden');
+		} else {
+			els.filesContainer.setAttribute('hidden', '');
+		}
+	});
+
+	// Click outside to hide files panel
+	document.addEventListener('click', (e) => {
+		if (els.filesContainer && !els.filesContainer.hasAttribute('hidden')) {
+			if (!els.filesContainer.contains(e.target) && !els.filesCount.contains(e.target)) {
+				els.filesContainer.setAttribute('hidden', '');
+			}
+		}
+	});
 
 	// Initial empty state
 	clearUI();

@@ -17,16 +17,27 @@
 
 		<div class="controls">
 			<div class="control">
-				<div id="dropZone" class="drop-zone">
-					<div class="drop-zone-content">
-						<div class="drop-zone-icon">📁</div>
-						<div class="drop-zone-text">
-							<div>Drop CSV file here</div>
-							<div class="drop-zone-subtext">or click to browse</div>
+				<div class="file-control-layout">
+					<div id="filesList" class="files-list-compact" hidden>
+						<div class="files-list-header">
+							<span class="files-count">0 files</span>
+							<span id="uniqueRecords" class="unique-records">0 unique records</span>
+							<button id="clearAllFiles" class="btn mini">Clear</button>
 						</div>
 					</div>
-					<input id="csvFile" type="file" accept=".csv" hidden />
+					<div id="dropZone" class="drop-zone">
+						<div class="drop-zone-content">
+							<div class="drop-zone-icon">📁</div>
+							<div class="drop-zone-text">
+								<div>Drop CSV files here</div>
+								<div class="drop-zone-subtext">or click to browse</div>
+							</div>
+						</div>
+						<input id="csvFile" type="file" accept=".csv" multiple hidden />
+					</div>
 				</div>
+				<!-- Files container is now separate and will appear as a floating panel -->
+				<div id="filesContainer" class="files-container-panel" hidden></div>
 			</div>
 
 			<div class="divider"></div>

@@ -453,6 +453,125 @@ tbody tr:hover { background: rgba(255,255,255,0.03); }
 	cursor: pointer;
 }
 
+/* Files list styles */
+.files-list {
+	margin-top: 6px;
+	background: var(--panel);
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	padding: 8px;
+	font-size: 13px;
+	max-width: 240px;
+}
+
+.files-list-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 6px;
+	font-weight: bold;
+}
+
+.files-container {
+	max-height: 180px;
+	overflow-y: auto;
+}
+
+.file-item {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 4px 6px;
+	border-bottom: 1px solid var(--border);
+}
+
+.file-item:last-child {
+	border-bottom: none;
+}
+
+.file-name {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 160px;
+	font-size: 12px;
+}
+
+.file-remove {
+	background: transparent;
+	color: var(--neg);
+	border: none;
+	cursor: pointer;
+	font-size: 14px;
+	padding: 0 4px;
+}
+
+.files-summary {
+	margin-top: 6px;
+	padding-top: 6px;
+	border-top: 1px solid var(--border);
+	font-size: 12px;
+	color: var(--muted);
+	text-align: center;
+}
+
+/* File control layout - horizontal alignment */
+.file-control-layout {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+}
+
+/* Files list compact style */
+.files-list-compact {
+    padding: 4px 8px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 12px;
+    flex-shrink: 0;
+    max-width: none;
+    display: flex;
+    align-items: center;
+	min-height: 40px;
+}
+
+.files-list-compact .files-list-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 0;
+    white-space: nowrap;
+}
+
+.files-count {
+    color: var(--pos);
+    font-weight: bold;
+}
+
+.unique-records {
+    color: var(--muted);
+    font-size: 11px;
+}
+
+/* Files container as floating panel */
+.files-container-panel {
+    position: absolute;
+    top: calc(100%);
+    left: 0;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px;
+    max-height: 180px;
+    overflow-y: auto;
+    z-index: 25;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    width: 260px;
+    max-width: 260px;
+}
+
 /* Responsive */
 @media (max-width: 1100px) {
 	/* Switch to scrollable layout for smaller screens */
