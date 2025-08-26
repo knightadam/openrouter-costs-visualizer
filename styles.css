@@ -48,6 +48,14 @@ html, body {
 	color: var(--text); background: var(--panel); border: 1px solid var(--border);
 	padding: 8px 10px; border-radius: 8px; min-width: 180px;
 }
+/* Fix Chrome date input calendar icon color */
+.control input[type="date"]::-webkit-calendar-picker-indicator {
+	filter: invert(0.8) brightness(1.6);
+}
+/* Optional: for Firefox, use accent-color (not supported for icon, but for input border) */
+.control input[type="date"] {
+	accent-color: var(--accent);
+}
 .control select[multiple] { min-width: 220px; min-height: 40px; }
 
 /* Drop zone styles */
