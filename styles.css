@@ -237,13 +237,31 @@ html, body {
 	overflow: auto;
 	overflow-x: auto;
 	overflow-y: auto;
-	scrollbar-gutter: stable both-edges;
+	/* scrollbar-gutter: stable both-edges; */ /* Removed to prevent gap */
 	border-top: 1px solid var(--border);
 	border-radius: 0 0 var(--radius) var(--radius);
 	/* make the table area the scroll container */
 	min-height: 0; /* was: 300px */
 	max-height: 100%;
 	overflow: auto;
+}
+
+/* Chromium scrollbar styling for main table */
+*::-webkit-scrollbar {
+	width: 10px;
+	height: 10px;
+}
+*::-webkit-scrollbar-track {
+	background: transparent; /* transparent track to overlay content */
+}
+*::-webkit-scrollbar-thumb {
+	background: rgba(128, 128, 128, 0.4); /* light grey, semi-transparent */
+	border-radius: 8px;
+	border: 2px solid transparent;
+	background-clip: padding-box;
+}
+*::-webkit-scrollbar-corner {
+	background: transparent;
 }
 
 /* Right panel now fills available space in its column */
