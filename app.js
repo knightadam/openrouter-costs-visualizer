@@ -244,6 +244,8 @@
 		} else {
 			els.filesList.setAttribute('hidden', '');
 			els.filesContainer.setAttribute('hidden', ''); // Hide container too
+			// Ensure "open" state is cleared if no files remain
+			els.filesList?.classList.remove('open');
 			return;
 		}
 		
@@ -266,6 +268,31 @@
 				removeFile(file.id);
 			});
 		}
+		// Re-center panel if it's open
+		if (!els.filesContainer.hasAttribute('hidden')) {
+			positionFilesContainer();
+		}
+	}
+
+	// Center the floating files panel under the compact files bar
+	function positionFilesContainer() {
+		if (!els.filesContainer || els.filesContainer.hasAttribute('hidden')) return;
+		const anchor = els.filesList;
+		if (!anchor) return;
+
+		const a = anchor.getBoundingClientRect();
+		// Ensure we can measure panel width; default to css width if not yet laid out
+		const panel = els.filesContainer;
+		const panelWidth = panel.offsetWidth || 320;
+		const margin = 6;
+
+		let left = Math.round(a.left + (a.width / 2) - (panelWidth / 2));
+		// Clamp within viewport
+		left = Math.max(8, Math.min(left, window.innerWidth - panelWidth - 8));
+		const top = Math.round(a.bottom + margin);
+
+		panel.style.left = left + 'px';
+		panel.style.top = top + 'px';
 	}
 
 	function mergeAndDeduplicateData() {
@@ -1066,8 +1093,11 @@
 		const hidden = els.filesContainer.hasAttribute('hidden');
 		if (hidden && state.files.length > 0) {
 			els.filesContainer.removeAttribute('hidden');
+			els.filesList?.classList.add('open');
+			positionFilesContainer(); // center when opening
 		} else {
 			els.filesContainer.setAttribute('hidden', '');
+			els.filesList?.classList.remove('open');
 		}
 	});
 
@@ -1076,9 +1106,14 @@
 		if (els.filesContainer && !els.filesContainer.hasAttribute('hidden')) {
 			if (!els.filesContainer.contains(e.target) && !els.filesCount.contains(e.target)) {
 				els.filesContainer.setAttribute('hidden', '');
+				els.filesList?.classList.remove('open');
 			}
 		}
 	});
+
+	// Reposition on resize/scroll while visible
+	window.addEventListener('resize', () => positionFilesContainer());
+	window.addEventListener('scroll', () => positionFilesContainer(), { passive: true });
 
 	// Initial empty state
 	clearUI();
