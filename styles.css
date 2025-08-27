@@ -808,7 +808,7 @@ tbody tr:hover { background: rgba(255,255,255,0.03); }
 }
 
 /* Short viewport adjustments */
-@media (max-height: 800px) {
+@media (min-width: 1101px) and (max-height: 800px) {
 	.layout {
 		max-height: none; /* allow scrolling on short screens */
 		min-height: 100vh;
