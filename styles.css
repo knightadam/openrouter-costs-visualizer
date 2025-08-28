@@ -569,11 +569,12 @@ tbody tr:hover { background: rgba(255,255,255,0.03); }
     padding: 6px 10px;
     background: linear-gradient(180deg, rgba(21,26,33,0.95), rgba(21,26,33,0.9));
     border: 1px solid var(--border);
-    border-radius: 12px; /* pill look */
+    border-radius: 12px;
     font-size: 12px;
     flex-shrink: 0;
     display: flex;
     align-items: center;
+    justify-content: center;
 	min-height: 40px;
 	gap: 10px;
 	box-shadow: 0 6px 16px rgba(0,0,0,0.2);
@@ -805,6 +806,103 @@ tbody tr:hover { background: rgba(255,255,255,0.03); }
 	.privacy-card {
 		padding: 12px;
 	}
+
+	/* Stack header: title first, then controls below, full width */
+	.topbar {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.brand {
+		align-self: flex-start; /* keep left-aligned */
+		margin-bottom: 6px;
+	}
+
+	.controls {
+		flex-direction: column; /* stack everything */
+		align-items: stretch;
+		width: 100%;
+		gap: 10px;
+	}
+
+	/* Remove the vertical divider when stacked */
+	.controls .divider {
+		display: none;
+	}
+
+	/* Make inputs/selects fill width and not force overflow */
+	.control { min-width: 0; }
+	.control input:not([type="checkbox"]):not([type="radio"]),
+	.control select {
+		width: 100%;
+		min-width: 0;
+	}
+
+	/* File bar + dropzone behave well on narrow widths */
+	.file-control-layout {
+		flex-wrap: wrap;
+		width: 100%;
+	}
+	.files-list-compact,
+	.drop-zone {
+		width: 100%;
+		min-width: 0;
+	}
+
+	/* Buttons stretch to width for clean vertical flow */
+	.controls .btn {
+		align-self: stretch;
+	}
+
+	/* Group: files bar + drop zone on one row */
+	.control > .file-control-layout {
+		display: flex;
+		flex-direction: row;
+		gap: 8px;
+		width: 100%;
+		flex-wrap: wrap;
+	}
+
+	/* Group: date pickers on one row */
+	.controls .date-row {
+		display: flex;
+		flex-direction: row;
+		gap: 8px;
+		width: 100%;
+		flex-wrap: wrap;
+	}
+
+	/* Group: apply/reset buttons on one row */
+	.controls .button-row {
+		display: flex;
+		flex-direction: row;
+		gap: 8px;
+		width: 100%;
+		flex-wrap: wrap;
+	}
+
+	/* Make file bar/drop zone share space */
+	.files-list-compact,
+	.drop-zone {
+		width: auto;
+		flex: 1 1 180px;
+		min-width: 120px;
+		max-width: 100%;
+	}
+
+	/* Make date pickers share space */
+	.date-row .control {
+		flex: 1 1 120px;
+		min-width: 100px;
+		max-width: 100%;
+	}
+
+	/* Make buttons share space */
+	.button-row .btn {
+		flex: 1 1 100px;
+		min-width: 80px;
+		max-width: 100%;
+	}
 }
 
 /* Short viewport adjustments */
@@ -843,4 +941,23 @@ tbody tr:hover { background: rgba(255,255,255,0.03); }
 	max-width: unset;
 	z-index: 40;
 	box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+}
+
+/* Stack grouped controls vertically on small screens */
+@media (max-width: 600px) {
+	.control > .file-control-layout,
+	.controls .date-row,
+	.controls .button-row {
+		flex-direction: column;
+		gap: 8px;
+	}
+	.files-list-compact,
+	.drop-zone,
+	.date-row .control,
+	.button-row .btn {
+		width: 100%;
+		min-width: 0;
+		max-width: 100%;
+		flex: unset;
+	}
 }
