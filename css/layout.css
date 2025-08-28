@@ -1,0 +1,247 @@
+/* Top bar layout */
+.topbar {
+	position: sticky;
+	top: 0;
+	z-index: 10;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 10px 14px;
+	background: linear-gradient(180deg, rgba(21,26,33,0.95), rgba(21,26,33,0.9));
+	border-bottom: 1px solid var(--border);
+	backdrop-filter: blur(6px);
+}
+.brand { font-weight: 700; letter-spacing: .2px; font-size: 22px; line-height: 1.1; }
+
+/* App layout */
+.layout {
+	flex: 1;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding: 12px;
+	max-height: none; /* contain within viewport */
+	box-sizing: border-box;
+}
+
+.columns {
+	display: grid;
+	grid-template-columns: 1fr 320px; /* left grows, right fixed-ish */
+	gap: 12px;
+	flex: 1 1 auto;
+	min-height: 0;
+	max-height: 100%; /* contain within layout */
+}
+
+/* Left column: table + charts */
+.left-col {
+	display: grid;
+	grid-template-rows: 1fr auto;
+	gap: 12px;
+	min-height: 0;
+	max-height: 100%;
+}
+.left-bottom {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 12px;
+	min-height: 0;
+	height: 280px; /* fixed height for charts */
+}
+
+/* Right column */
+.right-col {
+	display: grid;
+	grid-template-rows: minmax(0, 1fr) auto; /* allow first row to shrink and scroll */
+	gap: 12px;
+	min-height: 0;
+}
+
+/* Panels */
+.left-panel, .right-panel {
+	background: var(--panel);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	min-height: 0;
+}
+.left-panel { 
+	display: flex; 
+	flex-direction: column;
+	min-height: 0;
+	overflow: hidden; /* confine scrolling to .table-wrap */
+	height: 100%; /* fill available space in grid row */
+}
+.left-panel h2, .right-panel h3 { margin: 6px 12px 4px 12px; font-size: 18px; }
+
+/* Header row above the table */
+.table-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin: 6px 12px 4px 12px;
+}
+
+/* Table scroll container */
+.table-wrap {
+	flex: 1;
+	overflow: auto;
+	overflow-x: auto;
+	overflow-y: auto;
+	border-top: 1px solid var(--border);
+	border-radius: 0 0 var(--radius) var(--radius);
+	min-height: 0; 
+	max-height: 100%;
+	overflow: auto;
+}
+
+/* Right panel fill */
+.right-panel {
+	display: flex;
+	flex-direction: column;
+	padding: 12px;
+	height: 100%; /* fill the 1fr row */
+	min-height: 0;
+	overflow: auto; /* enable internal scroll instead of overlapping Notes */
+}
+
+/* Optional legacy section */
+.below-panels {
+	display: grid;
+	grid-template-columns: 1fr 1fr 300px;
+	gap: 12px;
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+	.layout {
+        flex: 0 0 auto;
+        height: auto;
+        min-height: 0;
+        padding-bottom: 12px;
+	}
+	.columns {
+		display: block;
+		flex: 0 0 auto;
+		min-height: auto;
+		height: auto;
+		max-height: none;
+	}
+	.left-col {
+		display: block;
+		grid-template-rows: none;
+		max-height: none;
+	}
+	.left-bottom {
+		grid-template-columns: 1fr;
+		height: auto;
+		margin-top: 12px;
+	}
+	.card { height: 280px; min-height: 280px; }
+	.card canvas { height: 220px !important; max-height: 220px !important; }
+
+	.kpis { grid-template-columns: repeat(2, 1fr); }
+
+	body { overflow: auto; }
+	.model-panel { width: min(90vw, 360px); }
+
+	.right-col {
+		display: block;
+		grid-template-rows: none;
+		min-height: auto;
+		margin-top: 12px;
+		max-height: none;
+	}
+	.right-panel {
+		height: auto;
+		overflow: visible;
+	}
+
+	/* Header stacking */
+	.topbar { flex-direction: column; align-items: stretch; }
+	.brand { align-self: flex-start; margin-bottom: 6px; }
+
+	/* Components within layout on small screens */
+	.controls {
+		flex-direction: column;
+		align-items: stretch;
+		width: 100%;
+		gap: 10px;
+	}
+	.controls .divider { display: none; }
+	.control { min-width: 0; }
+	.control input:not([type="checkbox"]):not([type="radio"]), .control select { width: 100%; min-width: 0; }
+
+	.file-control-layout { flex-wrap: wrap; width: 100%; }
+	.files-list-compact, .drop-zone { width: 100%; min-width: 0; }
+
+	.controls .btn { align-self: stretch; }
+
+	.control > .file-control-layout,
+	.controls .date-row,
+	.controls .button-row {
+		display: flex;
+		flex-direction: row;
+		gap: 8px;
+		width: 100%;
+		flex-wrap: wrap;
+	}
+
+	.files-list-compact, .drop-zone {
+		width: auto;
+		flex: 1 1 180px;
+		min-width: 120px;
+		max-width: 100%;
+	}
+	.date-row .control { flex: 1 1 120px; min-width: 100px; max-width: 100%; }
+	.button-row .btn { flex: 1 1 100px; min-width: 80px; max-width: 100%; }
+
+	/* Cards sizing */
+	.privacy-card, .about-me-card {
+		height: auto;
+		min-height: 0;
+		flex: 0 0 auto;
+		margin-top: 12px;
+	}
+	.privacy-card { padding: 12px; }
+}
+
+@media (min-width: 1101px) and (max-height: 800px) {
+	.layout { max-height: none; min-height: 100vh; }
+	.columns { max-height: none; }
+	.left-col { max-height: none; }
+	.left-bottom { height: 240px; }
+	.kpis { flex: 0 0 auto; }
+	.kpi { min-height: 48px; }
+	body { overflow-y: auto; min-height: 100vh; }
+}
+
+/* Column filter panel alignment (anchor is in header) */
+.col-filter .model-panel {
+	right: 0;
+	left: auto;
+	width: max-content;
+	min-width: unset;
+	max-width: unset;
+	z-index: 40;
+	box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+}
+
+/* Stack grouped controls vertically on very small screens */
+@media (max-width: 600px) {
+	.control > .file-control-layout,
+	.controls .date-row,
+	.controls .button-row {
+		flex-direction: column;
+		gap: 8px;
+	}
+	.files-list-compact, .drop-zone,
+	.date-row .control,
+	.button-row .btn {
+		width: 100%;
+		min-width: 0;
+		max-width: 100%;
+		flex: unset;
+	}
+}

@@ -1,0 +1,80 @@
+/* Table container inside left panel */
+.table-wrap {
+	flex: 1;
+	overflow: auto;
+	overflow-x: auto;
+	overflow-y: auto;
+	border-top: 1px solid var(--border);
+	border-radius: 0 0 var(--radius) var(--radius);
+	min-height: 0;
+	max-height: 100%;
+	overflow: auto;
+}
+
+/* Table */
+table {
+	border-collapse: separate;
+	border-spacing: 0;
+	width: max-content;
+	min-width: 100%;
+}
+thead th {
+	position: sticky; 
+	top: 0; 
+	background: #10151b;
+	border-bottom: 1px solid var(--border); 
+	z-index: 1;
+}
+tfoot td {
+	position: sticky;
+	bottom: 0;
+	background: #10151b;
+	border-top: 2px solid var(--border);
+	font-weight: 600;
+	z-index: 1;
+}
+th, td {
+	padding: 10px; 
+	font-size: 16px; /* increased from 14px */
+	border-bottom: 1px solid var(--border);
+	white-space: normal;
+	text-align: center;
+	overflow-wrap: anywhere;
+	word-break: break-word;
+}
+
+/* Keep model column left-aligned for readability */
+.model-col {
+	left: 0; 
+	background: #10151b;
+	max-width: 240px; 
+	overflow-wrap: anywhere;
+	z-index: 2;
+	text-align: left;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+@media (max-width: 700px) {
+	.model-col { max-width: 120px; }
+}
+
+/* Hover */
+tbody tr:hover { background: rgba(255,255,255,0.03); }
+
+/* Sorting */
+.sortable-header { user-select: none; cursor: pointer; }
+
+/* Column visibility utility */
+.col-hidden { display: none !important; }
+
+/* Global scrollbars (applies to table areas too) */
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+	background: rgba(128, 128, 128, 0.4);
+	border-radius: 8px;
+	border: 2px solid transparent;
+	background-clip: padding-box;
+}
+*::-webkit-scrollbar-corner { background: transparent; }

@@ -1,0 +1,14 @@
+:root {
+	--bg: #0f1216;
+	--panel: #151a21;
+	--muted: #8aa0b6;
+	--text: #e7eef7;
+	--accent: #40a0ff;
+	--accent-muted: #2b77bf;
+	--border: #263140;
+	--pos: #35c26b;
+	--neg: #ff6b6b;
+	--warn: #ffc46b;
+	--mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+	--radius: 10px;
+}
