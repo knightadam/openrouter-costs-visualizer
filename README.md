@@ -1,6 +1,9 @@
 # OpenRouter Costs Visualizer
 
 Visualize OpenRouter CSV usage costs by model and over time.
+
+<img width="2536" height="1414" alt="OpenRouter Costs Visualizer Screenshot" src="https://github.com/user-attachments/assets/43701493-0628-48b0-ad35-d19ddd60223f" />
+
 - Drag & drop multiple CSV files (duplicates removed)
 - Model/date filters, column visibility
 - Sortable table
@@ -11,6 +14,7 @@ Visualize OpenRouter CSV usage costs by model and over time.
 - Double-click [index.html](index.html), or
 - In VS Code: right‑click index.html → “Open with Live Server”, or
 - Terminal (Windows):
+
   - `npx http-server . -p 8080` then open http://localhost:8080
 
 No build step required.
