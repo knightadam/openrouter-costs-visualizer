@@ -1,4 +1,4 @@
-import { els } from '../utils/dom.js';
+import { elements } from '../utils/dom.js';
 import { state, fmtUSD } from '../state.js';
 
 export function renderBarByModel(rows) {
@@ -10,10 +10,10 @@ export function renderBarByModel(rows) {
 	const data = sorted.map(([_, v]) => v);
 
 	if (state.charts.bar) { state.charts.bar.destroy(); state.charts.bar = null; }
-	const ctx = els.barCanvas.getContext('2d');
-	ctx.clearRect(0, 0, els.barCanvas.width, els.barCanvas.height);
+	const ctx = elements.barCanvas.getContext('2d');
+	ctx.clearRect(0, 0, elements.barCanvas.width, elements.barCanvas.height);
 
-	state.charts.bar = new Chart(els.barCanvas, {
+	state.charts.bar = new Chart(elements.barCanvas, {
 		type: 'bar',
 		data: { labels, datasets: [{ label: 'Total Cost (USD)', data, backgroundColor: '#40a0ff' }] },
 		options: {
@@ -38,10 +38,10 @@ export function renderLineOverTime(rows) {
 	const data = sorted.map(([_, v]) => v);
 
 	if (state.charts.line) { state.charts.line.destroy(); state.charts.line = null; }
-	const ctx = els.lineCanvas.getContext('2d');
-	ctx.clearRect(0, 0, els.lineCanvas.width, els.lineCanvas.height);
+	const ctx = elements.lineCanvas.getContext('2d');
+	ctx.clearRect(0, 0, elements.lineCanvas.width, elements.lineCanvas.height);
 
-	state.charts.line = new Chart(els.lineCanvas, {
+	state.charts.line = new Chart(elements.lineCanvas, {
 		type: 'line',
 		data: { labels, datasets: [{ label: 'Total Cost (USD)', data, borderColor: '#40a0ff', backgroundColor: 'rgba(64,160,255,0.25)', tension: 0.2, fill: true }] },
 		options: {

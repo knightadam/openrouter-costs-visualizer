@@ -1,4 +1,4 @@
-import { els } from '../utils/dom.js';
+import { elements } from '../utils/dom.js';
 import { state, COL_KEYS, COL_LABELS, fmtUSD, fmtUSD_4dec, fmtUSD_6dec, fmtInt, DEFAULT_COL_VISIBILITY } from '../state.js';
 import { saveColumnVisibility } from '../services/storage.js';
 
@@ -62,19 +62,19 @@ export function applyColumnVisibility() {
 }
 
 function positionColPanel() {
-	if (!els.colPanel || !els.colBtn) return;
-	els.colPanel.classList.remove('align-right');
-	els.colPanel.style.maxWidth = Math.min(360, window.innerWidth - 16) + 'px';
-	const btnRect = els.colBtn.getBoundingClientRect();
-	const panelRect = els.colPanel.getBoundingClientRect();
+	if (!elements.colPanel || !elements.colBtn) return;
+	elements.colPanel.classList.remove('align-right');
+	elements.colPanel.style.maxWidth = Math.min(360, window.innerWidth - 16) + 'px';
+	const btnRect = elements.colBtn.getBoundingClientRect();
+	const panelRect = elements.colPanel.getBoundingClientRect();
 	const margin = 8;
 	const projectedRight = btnRect.left + panelRect.width;
-	if (projectedRight > window.innerWidth - margin) els.colPanel.classList.add('align-right');
+	if (projectedRight > window.innerWidth - margin) elements.colPanel.classList.add('align-right');
 }
 
 export function initColumnFilterUI() {
-	if (!els.colList) return;
-	els.colList.innerHTML = '';
+	if (!elements.colList) return;
+	elements.colList.innerHTML = '';
 
 	for (const key of COL_KEYS) {
 		const label = COL_LABELS[key] || key;
@@ -93,7 +93,7 @@ export function initColumnFilterUI() {
 			state.colVisibility[k] = cb.checked;
 			applyColumnVisibility();
 		});
-		els.colList.appendChild(row);
+		elements.colList.appendChild(row);
 	}
 
 	// Default button
@@ -102,18 +102,18 @@ export function initColumnFilterUI() {
 	defaultBtn.className = 'btn mini';
 	defaultBtn.type = 'button';
 	defaultBtn.textContent = 'Default';
-	const panelHead = els.colPanel?.querySelector('.model-panel-head');
+	const panelHead = elements.colPanel?.querySelector('.model-panel-head');
 	if (panelHead) {
 		const noneBtn = panelHead.querySelector('#colSelectNone');
 		panelHead.insertBefore(defaultBtn, noneBtn);
 	}
 
-	els.colAll?.addEventListener('click', () => {
+	elements.colAll?.addEventListener('click', () => {
 		for (const k of COL_KEYS) {
 			if (k === 'model' || k === 'req' || k === 'total') continue;
 			state.colVisibility[k] = true;
 		}
-		for (const cb of els.colList.querySelectorAll('input[type="checkbox"]')) {
+		for (const cb of elements.colList.querySelectorAll('input[type="checkbox"]')) {
 			if (cb.disabled) continue;
 			cb.checked = true;
 		}
@@ -121,42 +121,42 @@ export function initColumnFilterUI() {
 	});
 	defaultBtn.addEventListener('click', () => {
 		for (const k of COL_KEYS) state.colVisibility[k] = DEFAULT_COL_VISIBILITY[k];
-		for (const cb of els.colList.querySelectorAll('input[type="checkbox"]')) {
+		for (const cb of elements.colList.querySelectorAll('input[type="checkbox"]')) {
 			const k = cb.getAttribute('data-key');
 			cb.checked = !!DEFAULT_COL_VISIBILITY[k];
 		}
 		applyColumnVisibility();
 	});
-	els.colNone?.addEventListener('click', () => {
+	elements.colNone?.addEventListener('click', () => {
 		for (const k of COL_KEYS) {
 			if (k === 'model' || k === 'req' || k === 'total') continue;
 			state.colVisibility[k] = false;
 		}
-		for (const cb of els.colList.querySelectorAll('input[type="checkbox"]')) {
+		for (const cb of elements.colList.querySelectorAll('input[type="checkbox"]')) {
 			if (cb.disabled) continue;
 			cb.checked = false;
 		}
 		applyColumnVisibility();
 	});
 
-	els.colBtn?.addEventListener('click', (e) => {
+	elements.colBtn?.addEventListener('click', (e) => {
 		e.stopPropagation();
-		const hidden = els.colPanel.hasAttribute('hidden');
+		const hidden = elements.colPanel.hasAttribute('hidden');
 		if (hidden) {
-			els.colPanel.removeAttribute('hidden');
+			elements.colPanel.removeAttribute('hidden');
 			positionColPanel();
 		} else {
-			els.colPanel.setAttribute('hidden', '');
+			elements.colPanel.setAttribute('hidden', '');
 		}
 	});
 	document.addEventListener('click', (e) => {
-		if (!els.colPanel) return;
-		if (els.colPanel.hasAttribute('hidden')) return;
-		if (els.colPanel.contains(e.target) || els.colBtn.contains(e.target)) return;
-		els.colPanel.setAttribute('hidden', '');
+		if (!elements.colPanel) return;
+		if (elements.colPanel.hasAttribute('hidden')) return;
+		if (elements.colPanel.contains(e.target) || elements.colBtn.contains(e.target)) return;
+		elements.colPanel.setAttribute('hidden', '');
 	});
 	window.addEventListener('resize', () => {
-		if (!els.colPanel?.hasAttribute('hidden')) positionColPanel();
+		if (!elements.colPanel?.hasAttribute('hidden')) positionColPanel();
 	});
 
 	applyColumnVisibility();
@@ -212,7 +212,7 @@ export function renderTable(rows) {
 	const avgGenTime = totals.req > 0 ? Math.round(totals.genTime / totals.req) : 0;
 	const avgTtft = totals.req > 0 ? Math.round(totals.ttft / totals.req) : 0;
 
-	els.tableBody.innerHTML = '';
+	elements.tableBody.innerHTML = '';
 	for (const [model, v] of sorted) {
 		const avgGenTimeRow = v.req > 0 ? Math.round(v.genTime / v.req) : 0;
 		const avgTtftRow = v.req > 0 ? Math.round(v.ttft / v.req) : 0;
@@ -238,7 +238,7 @@ export function renderTable(rows) {
 			<td data-col="genTime" class="mono">${avgGenTimeRow === 0 ? `<span class="zero-value">${fmtInt.format(avgGenTimeRow)}ms</span>` : `${fmtInt.format(avgGenTimeRow)}ms`}</td>
 			<td data-col="ttft" class="mono">${avgTtftRow === 0 ? `<span class="zero-value">${fmtInt.format(avgTtftRow)}ms</span>` : `${fmtInt.format(avgTtftRow)}ms`}</td>
 		`;
-		els.tableBody.appendChild(tr);
+		elements.tableBody.appendChild(tr);
 	}
 
 	const tableFooter = document.querySelector('#costTable tfoot');

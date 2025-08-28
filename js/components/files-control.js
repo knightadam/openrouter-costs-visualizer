@@ -1,27 +1,27 @@
-import { els } from '../utils/dom.js';
+import { elements } from '../utils/dom.js';
 import { state } from '../state.js';
 import { parseCSV, escapeHTML } from '../services/parser.js';
 
 function updateDropZoneState(count) {
-	if (!els.dropZone) return;
+	if (!elements.dropZone) return;
 	if (count > 0) {
-		els.dropZone.classList.add('has-file');
-		const textEl = els.dropZone.querySelector('.drop-zone-text div:first-child');
+		elements.dropZone.classList.add('has-file');
+		const textEl = elements.dropZone.querySelector('.drop-zone-text div:first-child');
 		if (textEl) textEl.textContent = count === 1 ? 'Add more files' : `${count} files added`;
 	} else {
-		els.dropZone.classList.remove('has-file');
-		const textEl = els.dropZone.querySelector('.drop-zone-text div:first-child');
+		elements.dropZone.classList.remove('has-file');
+		const textEl = elements.dropZone.querySelector('.drop-zone-text div:first-child');
 		if (textEl) textEl.textContent = 'Drop CSV files here';
 	}
 }
 
 export function positionFilesContainer() {
-	if (!els.filesContainer || els.filesContainer.hasAttribute('hidden')) return;
-	const anchor = els.filesList;
+	if (!elements.filesContainer || elements.filesContainer.hasAttribute('hidden')) return;
+	const anchor = elements.filesList;
 	if (!anchor) return;
 
 	const a = anchor.getBoundingClientRect();
-	const panel = els.filesContainer;
+	const panel = elements.filesContainer;
 	const panelWidth = panel.offsetWidth || 320;
 	const margin = 6;
 
@@ -34,18 +34,18 @@ export function positionFilesContainer() {
 }
 
 function updateFilesListUI(onChange) {
-	els.filesCount.textContent = `${state.files.length} file${state.files.length !== 1 ? 's' : ''}`;
+	elements.filesCount.textContent = `${state.files.length} file${state.files.length !== 1 ? 's' : ''}`;
 
 	if (state.files.length > 0) {
-		els.filesList.removeAttribute('hidden');
+		elements.filesList.removeAttribute('hidden');
 	} else {
-		els.filesList.setAttribute('hidden', '');
-		els.filesContainer.setAttribute('hidden', '');
-		els.filesList?.classList.remove('open');
+		elements.filesList.setAttribute('hidden', '');
+		elements.filesContainer.setAttribute('hidden', '');
+		elements.filesList?.classList.remove('open');
 		return;
 	}
 
-	els.filesContainer.innerHTML = '';
+	elements.filesContainer.innerHTML = '';
 
 	for (const file of state.files) {
 		const row = document.createElement('div');
@@ -61,10 +61,10 @@ function updateFilesListUI(onChange) {
 			if (state.files.length === 0) updateDropZoneState(0);
 			onChange?.();
 		});
-		els.filesContainer.appendChild(row);
+		elements.filesContainer.appendChild(row);
 	}
 
-	if (!els.filesContainer.hasAttribute('hidden')) positionFilesContainer();
+	if (!elements.filesContainer.hasAttribute('hidden')) positionFilesContainer();
 }
 
 function addFile(file, onChange) {
@@ -100,49 +100,49 @@ export function clearAllFiles(onChange) {
 
 export function initFilesControl(onChange) {
 	// input
-	els.file?.addEventListener('change', e => {
+	elements.file?.addEventListener('change', e => {
 		const files = e.target.files;
 		if (files && files.length > 0) handleFiles(files, onChange);
 	});
 
 	// drop zone
-	els.dropZone?.addEventListener('click', () => els.file?.click());
-	els.dropZone?.addEventListener('dragover', e => {
+	elements.dropZone?.addEventListener('click', () => elements.file?.click());
+	elements.dropZone?.addEventListener('dragover', e => {
 		e.preventDefault();
-		els.dropZone.classList.add('drag-over');
+		elements.dropZone.classList.add('drag-over');
 	});
-	els.dropZone?.addEventListener('dragleave', e => {
+	elements.dropZone?.addEventListener('dragleave', e => {
 		e.preventDefault();
-		if (!els.dropZone.contains(e.relatedTarget)) els.dropZone.classList.remove('drag-over');
+		if (!elements.dropZone.contains(e.relatedTarget)) elements.dropZone.classList.remove('drag-over');
 	});
-	els.dropZone?.addEventListener('drop', e => {
+	elements.dropZone?.addEventListener('drop', e => {
 		e.preventDefault();
-		els.dropZone.classList.remove('drag-over');
+		elements.dropZone.classList.remove('drag-over');
 		const files = e.dataTransfer?.files;
 		if (files && files.length > 0) handleFiles(files, onChange);
 	});
 
 	// clear button
-	els.clearAllFiles?.addEventListener('click', () => clearAllFiles(onChange));
+	elements.clearAllFiles?.addEventListener('click', () => clearAllFiles(onChange));
 
 	// files panel toggle
-	els.filesCount?.addEventListener('click', e => {
+	elements.filesCount?.addEventListener('click', e => {
 		e.stopPropagation();
-		const hidden = els.filesContainer.hasAttribute('hidden');
+		const hidden = elements.filesContainer.hasAttribute('hidden');
 		if (hidden && state.files.length > 0) {
-			els.filesContainer.removeAttribute('hidden');
-			els.filesList?.classList.add('open');
+			elements.filesContainer.removeAttribute('hidden');
+			elements.filesList?.classList.add('open');
 			positionFilesContainer();
 		} else {
-			els.filesContainer.setAttribute('hidden', '');
-			els.filesList?.classList.remove('open');
+			elements.filesContainer.setAttribute('hidden', '');
+			elements.filesList?.classList.remove('open');
 		}
 	});
 	document.addEventListener('click', e => {
-		if (els.filesContainer && !els.filesContainer.hasAttribute('hidden')) {
-			if (!els.filesContainer.contains(e.target) && !els.filesCount.contains(e.target)) {
-				els.filesContainer.setAttribute('hidden', '');
-				els.filesList?.classList.remove('open');
+		if (elements.filesContainer && !elements.filesContainer.hasAttribute('hidden')) {
+			if (!elements.filesContainer.contains(e.target) && !elements.filesCount.contains(e.target)) {
+				elements.filesContainer.setAttribute('hidden', '');
+				elements.filesList?.classList.remove('open');
 			}
 		}
 	});

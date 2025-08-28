@@ -1,15 +1,15 @@
-import { els } from '../utils/dom.js';
+import { elements } from '../utils/dom.js';
 import { state } from '../state.js';
 
 export function updateModelButtonCaption() {
-	if (!els.modelBtn) return;
+	if (!elements.modelBtn) return;
 	const n = state.selectedModels.size;
-	els.modelBtn.textContent = n === 0 ? 'All models' : `${n} model${n>1?'s':''} selected`;
+	elements.modelBtn.textContent = n === 0 ? 'All models' : `${n} model${n>1?'s':''} selected`;
 }
 
 export function populateModelFilter(models) {
-	if (!els.modelList) return;
-	els.modelList.innerHTML = '';
+	if (!elements.modelList) return;
+	elements.modelList.innerHTML = '';
 	const arr = [...models].sort();
 	for (const m of arr) {
 		const id = 'mdl_' + btoa(m).replace(/=+$/,'');
@@ -25,63 +25,63 @@ export function populateModelFilter(models) {
 			else state.selectedModels.delete(m);
 			updateModelButtonCaption();
 		});
-		els.modelList.appendChild(wrap);
+		elements.modelList.appendChild(wrap);
 	}
 
 	// reset and rebind head controls to avoid multiple listeners
-	const newSearch = els.modelSearch.cloneNode(true);
-	els.modelSearch.parentNode.replaceChild(newSearch, els.modelSearch);
-	els.modelSearch = newSearch;
+	const newSearch = elements.modelSearch.cloneNode(true);
+	elements.modelSearch.parentNode.replaceChild(newSearch, elements.modelSearch);
+	elements.modelSearch = newSearch;
 
-	const newAll = els.modelAll.cloneNode(true);
-	els.modelAll.parentNode.replaceChild(newAll, els.modelAll);
-	els.modelAll = newAll;
+	const newAll = elements.modelAll.cloneNode(true);
+	elements.modelAll.parentNode.replaceChild(newAll, elements.modelAll);
+	elements.modelAll = newAll;
 
-	const newNone = els.modelNone.cloneNode(true);
-	els.modelNone.parentNode.replaceChild(newNone, els.modelNone);
-	els.modelNone = newNone;
+	const newNone = elements.modelNone.cloneNode(true);
+	elements.modelNone.parentNode.replaceChild(newNone, elements.modelNone);
+	elements.modelNone = newNone;
 
-	els.modelSearch?.addEventListener('input', () => {
-		const q = els.modelSearch.value.trim().toLowerCase();
-		for (const el of els.modelList.children) {
+	elements.modelSearch?.addEventListener('input', () => {
+		const q = elements.modelSearch.value.trim().toLowerCase();
+		for (const el of elements.modelList.children) {
 			const txt = el.textContent.toLowerCase();
 			el.style.display = txt.includes(q) ? '' : 'none';
 		}
 	});
-	els.modelAll?.addEventListener('click', () => {
+	elements.modelAll?.addEventListener('click', () => {
 		if (state.models.size > 0) {
 			state.selectedModels = new Set([...state.models]);
-			for (const cb of els.modelList.querySelectorAll('input[type="checkbox"]')) cb.checked = true;
+			for (const cb of elements.modelList.querySelectorAll('input[type="checkbox"]')) cb.checked = true;
 			updateModelButtonCaption();
 		}
 	});
-	els.modelNone?.addEventListener('click', () => {
+	elements.modelNone?.addEventListener('click', () => {
 		state.selectedModels.clear();
-		for (const cb of els.modelList.querySelectorAll('input[type="checkbox"]')) cb.checked = false;
+		for (const cb of elements.modelList.querySelectorAll('input[type="checkbox"]')) cb.checked = false;
 		updateModelButtonCaption();
 	});
 
 	if (!populateModelFilter._dropdownSetup) {
-		els.modelBtn?.addEventListener('click', (e) => {
+		elements.modelBtn?.addEventListener('click', (e) => {
 			e.stopPropagation();
 			if (state.models.size > 0) {
-				const hidden = els.modelPanel.hasAttribute('hidden');
+				const hidden = elements.modelPanel.hasAttribute('hidden');
 				if (hidden) {
-					els.modelPanel.removeAttribute('hidden');
+					elements.modelPanel.removeAttribute('hidden');
 					positionModelPanel();
 				} else {
-					els.modelPanel.setAttribute('hidden', '');
+					elements.modelPanel.setAttribute('hidden', '');
 				}
 			}
 		});
 		document.addEventListener('click', (e) => {
-			if (!els.modelPanel) return;
-			if (els.modelPanel.hasAttribute('hidden')) return;
-			if (els.modelPanel.contains(e.target) || els.modelBtn.contains(e.target)) return;
-			els.modelPanel.setAttribute('hidden', '');
+			if (!elements.modelPanel) return;
+			if (elements.modelPanel.hasAttribute('hidden')) return;
+			if (elements.modelPanel.contains(e.target) || elements.modelBtn.contains(e.target)) return;
+			elements.modelPanel.setAttribute('hidden', '');
 		});
 		window.addEventListener('resize', () => {
-			if (!els.modelPanel?.hasAttribute('hidden')) positionModelPanel();
+			if (!elements.modelPanel?.hasAttribute('hidden')) positionModelPanel();
 		});
 		populateModelFilter._dropdownSetup = true;
 	}
@@ -91,28 +91,28 @@ export function populateModelFilter(models) {
 	for (const s of state.selectedModels) if (models.has(s)) existingSelected.add(s);
 	state.selectedModels = existingSelected;
 
-	for (const cb of els.modelList.querySelectorAll('input[type="checkbox"]')) {
+	for (const cb of elements.modelList.querySelectorAll('input[type="checkbox"]')) {
 		cb.checked = state.selectedModels.has(cb.value);
 	}
-	if (els.modelSearch) els.modelSearch.value = '';
+	if (elements.modelSearch) elements.modelSearch.value = '';
 	updateModelButtonCaption();
 }
 
 export function positionModelPanel() {
-	if (!els.modelPanel || !els.modelBtn) return;
-	els.modelPanel.classList.remove('align-right');
-	els.modelPanel.style.maxWidth = Math.min(360, window.innerWidth - 16) + 'px';
-	const btnRect = els.modelBtn.getBoundingClientRect();
-	const panelRect = els.modelPanel.getBoundingClientRect();
+	if (!elements.modelPanel || !elements.modelBtn) return;
+	elements.modelPanel.classList.remove('align-right');
+	elements.modelPanel.style.maxWidth = Math.min(360, window.innerWidth - 16) + 'px';
+	const btnRect = elements.modelBtn.getBoundingClientRect();
+	const panelRect = elements.modelPanel.getBoundingClientRect();
 	const margin = 8;
 	const projectedRight = btnRect.left + panelRect.width;
-	if (projectedRight > window.innerWidth - margin) els.modelPanel.classList.add('align-right');
+	if (projectedRight > window.innerWidth - margin) elements.modelPanel.classList.add('align-right');
 }
 
 export function getSelectedModels() {
 	if (state.selectedModels.size > 0) return [...state.selectedModels];
-	if (els.modelFilter?.selectedOptions?.length) {
-		return Array.from(els.modelFilter.selectedOptions).map(o => o.value);
+	if (elements.modelFilter?.selectedOptions?.length) {
+		return Array.from(elements.modelFilter.selectedOptions).map(o => o.value);
 	}
 	return [];
 }
@@ -132,8 +132,8 @@ export function applyFilters(renderAll) {
 	if (state.rows.length === 0) { renderAll([]); return; }
 	const sel = getSelectedModels();
 	const hasSel = sel.length > 0;
-	const from = dateStartInclusive(els.from.value);
-	const to = dateEndInclusive(els.to.value);
+	const from = dateStartInclusive(elements.from.value);
+	const to = dateEndInclusive(elements.to.value);
 
 	state.filtered = state.rows.filter(r => {
 		if (hasSel && !sel.includes(r.model)) return false;
@@ -146,11 +146,11 @@ export function applyFilters(renderAll) {
 }
 
 export function resetFilters(renderAll) {
-	els.from.value = '';
-	els.to.value = '';
-	if (els.modelFilter?.options) for (const opt of els.modelFilter.options) opt.selected = false;
+	elements.from.value = '';
+	elements.to.value = '';
+	if (elements.modelFilter?.options) for (const opt of elements.modelFilter.options) opt.selected = false;
 	state.selectedModels.clear();
-	for (const cb of els.modelList?.querySelectorAll?.('input[type="checkbox"]') || []) cb.checked = false;
+	for (const cb of elements.modelList?.querySelectorAll?.('input[type="checkbox"]') || []) cb.checked = false;
 	updateModelButtonCaption();
 
 	state.filtered = state.rows.slice();
@@ -158,8 +158,8 @@ export function resetFilters(renderAll) {
 }
 
 export function initFilters({ onApply }) {
-	els.btnApply?.addEventListener('click', () => applyFilters(onApply));
-	els.btnReset?.addEventListener('click', () => resetFilters(onApply));
+	elements.btnApply?.addEventListener('click', () => applyFilters(onApply));
+	elements.btnReset?.addEventListener('click', () => resetFilters(onApply));
 	// legacy select
-	els.modelFilter?.addEventListener('change', () => applyFilters(onApply));
+	elements.modelFilter?.addEventListener('change', () => applyFilters(onApply));
 }

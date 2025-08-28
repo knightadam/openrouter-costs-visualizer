@@ -1,4 +1,4 @@
-import { els } from './utils/dom.js';
+import { elements } from './utils/dom.js';
 import { state, fmtUSD_4dec, fmtUSD_6dec, fmtInt } from './state.js';
 import { mergeAndDeduplicateData } from './services/parser.js';
 import { initFilesControl, positionFilesContainer } from './components/files-control.js';
@@ -8,12 +8,12 @@ import { renderBarByModel, renderLineOverTime } from './components/charts.js';
 
 // KPIs + clear and render pipeline
 function clearUI() {
-	els.kpiReq.textContent = '-';
-	els.kpiOpenRouterCost.textContent = '-';
-	els.kpiTotalCost.textContent = '-';
-	els.kpiAvg.textContent = '-';
-	els.kpiWin.textContent = '-';
-	els.tableBody.innerHTML = '';
+	elements.kpiReq.textContent = '-';
+	elements.kpiOpenRouterCost.textContent = '-';
+	elements.kpiTotalCost.textContent = '-';
+	elements.kpiAvg.textContent = '-';
+	elements.kpiWin.textContent = '-';
+	elements.tableBody.innerHTML = '';
 	const tfoot = document.querySelector('#costTable tfoot');
 	if (tfoot) tfoot.innerHTML = '';
 	if (state.charts.bar) { state.charts.bar.destroy(); state.charts.bar = null; }
@@ -33,11 +33,11 @@ function renderKPIs(rows) {
 	const maxD = rows[rows.length - 1].date;
 	const fmt = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 
-	els.kpiReq.textContent = fmtInt.format(count);
-	els.kpiOpenRouterCost.textContent = fmtUSD_4dec.format(totalOpenRouter);
-	els.kpiTotalCost.textContent = fmtUSD_4dec.format(totalCost);
-	els.kpiAvg.textContent = count ? fmtUSD_6dec.format(avg) : '-';
-	els.kpiWin.innerHTML = `${fmt(minD)}<br>${fmt(maxD)}`;
+	elements.kpiReq.textContent = fmtInt.format(count);
+	elements.kpiOpenRouterCost.textContent = fmtUSD_4dec.format(totalOpenRouter);
+	elements.kpiTotalCost.textContent = fmtUSD_4dec.format(totalCost);
+	elements.kpiAvg.textContent = count ? fmtUSD_6dec.format(avg) : '-';
+	elements.kpiWin.innerHTML = `${fmt(minD)}<br>${fmt(maxD)}`;
 }
 
 function renderAll(rows) {
@@ -58,9 +58,9 @@ function onFilesChanged() {
 		state.models = new Set();
 		state.selectedModels.clear();
 		state.filtered = [];
-		if (els.uniqueRecords) els.uniqueRecords.textContent = '0 unique records';
-		if (els.modelList) els.modelList.innerHTML = '';
-		if (els.modelPanel && !els.modelPanel.hasAttribute('hidden')) els.modelPanel.setAttribute('hidden','');
+		if (elements.uniqueRecords) elements.uniqueRecords.textContent = '0 unique records';
+		if (elements.modelList) elements.modelList.innerHTML = '';
+		if (elements.modelPanel && !elements.modelPanel.hasAttribute('hidden')) elements.modelPanel.setAttribute('hidden','');
 		clearUI();
 		return;
 	}
@@ -68,13 +68,13 @@ function onFilesChanged() {
 	const { rows, models } = mergeAndDeduplicateData(state.files);
 	state.rows = rows;
 	state.models = models;
-	if (els.uniqueRecords) els.uniqueRecords.textContent = `${rows.length} unique records`;
+	if (elements.uniqueRecords) elements.uniqueRecords.textContent = `${rows.length} unique records`;
 	populateModelFilter(models);
 	applyFilters(renderAll);
 }
 
 function setupHeaderTooltips() {
-	const tooltip = els.tableTooltip;
+	const tooltip = elements.tableTooltip;
 	const ths = document.querySelectorAll('#costTable th[data-tooltip]');
 	if (!tooltip || !ths.length) return;
 

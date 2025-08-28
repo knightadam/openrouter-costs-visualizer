@@ -1,4 +1,4 @@
-export const els = {
+export const elements = {
 	file: document.getElementById('csvFile'),
 	dropZone: document.getElementById('dropZone'),
 	filesList: document.getElementById('filesList'),
