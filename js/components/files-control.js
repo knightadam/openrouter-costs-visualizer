@@ -55,10 +55,23 @@ function updateFilesListUI(onChange) {
 			<button class="file-remove" data-file-id="${file.id}" title="Remove file">&times;</button>
 		`;
 		const removeBtn = row.querySelector('.file-remove');
-		removeBtn.addEventListener('click', () => {
+		removeBtn.addEventListener('click', (e) => {
+			// Keep panel open by preventing the document click handler from running
+			e.stopPropagation();
+			e.preventDefault();
+
 			state.files = state.files.filter(f => f.id !== file.id);
 			updateFilesListUI(onChange);
-			if (state.files.length === 0) updateDropZoneState(0);
+
+			if (state.files.length === 0) {
+				updateDropZoneState(0);
+			} else {
+				// Ensure the panel stays open and correctly positioned
+				elements.filesContainer?.removeAttribute('hidden');
+				elements.filesList?.classList.add('open');
+				positionFilesContainer();
+			}
+
 			onChange?.();
 		});
 		elements.filesContainer.appendChild(row);
